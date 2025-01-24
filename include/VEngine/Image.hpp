@@ -1,7 +1,18 @@
+///
+/// @file Image.hpp
+/// @brief This file contains the image class
+/// @namespace ven
+///
+
 #pragma once
 
 namespace ven {
 
+	///
+	/// @class Image
+	/// @brief Class for image
+	/// @namespace ven
+	///
 	class Image {
 
         using pixel = unsigned char;
@@ -18,4 +29,4 @@ namespace ven {
 
 	}; // class Image
 
-}; // namespace ven
+} // namespace ven

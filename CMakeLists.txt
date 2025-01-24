@@ -22,6 +22,7 @@ clangformat_setup()
 include(MakeShaders)
 
 add_subdirectory(third-party)
+add_subdirectory(modules)
 
 if (BUILD_TESTS)
     include(MakeTests)
@@ -33,7 +34,7 @@ add_dependencies(${PROJECT_NAME} thirdparty shaders)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIR})
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${THIRDPARTY_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE thirdparty modules)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})

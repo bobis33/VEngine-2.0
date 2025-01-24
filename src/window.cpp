@@ -1,7 +1,7 @@
 #include <stdexcept>
 
-#include "VEngine/Window.hpp"
 #include "VEngine/Image.hpp"
+#include "VEngine/Window.hpp"
 
 GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t height, const std::string &title)
 {
