@@ -6,8 +6,6 @@
 
 #pragma once
 
-#include <string>
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -43,8 +41,8 @@ namespace ven {
             [[nodiscard]] bool wasWindowResized() const { return m_framebufferResized; }
             void resetWindowResizedFlag() { m_framebufferResized = false; }
 
-            void setFullscreen(bool fullscreen, uint32_t width, uint32_t height);
-            void setWindowIcon(const std::string& path);
+            static void setFullscreen(bool fullscreen, uint32_t width, uint32_t height);
+            void setWindowIcon(const std::string& path) const;
 
             static void pollEvents() { glfwPollEvents(); }
             [[nodiscard]] bool shouldClose() const { return glfwWindowShouldClose(m_window) != 0; }

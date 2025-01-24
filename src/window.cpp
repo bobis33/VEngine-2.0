@@ -55,14 +55,13 @@ void ven::Window::setFullscreen(const bool fullscreen, const uint32_t width, con
     */
 }
 
-void ven::Window::setWindowIcon(const std::string &path)
-{
-    Image image(path);
+void ven::Window::setWindowIcon(const std::string &path) const {
+    const Image image(path);
+
     if (image.pixels == nullptr) {
         throw std::runtime_error("Failed to load window icon");
     }
 
-    GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
-
+    const GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
     glfwSetWindowIcon(m_window, 1, &appIcon);
 }
