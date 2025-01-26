@@ -36,7 +36,7 @@ namespace ven {
 
         private:
 
-            void createShaderModule(VkDevice& device, const std::vector<char>& code);
+            void createShaderModule(const VkDevice& device, const std::vector<char>& code);
 
             VkDevice m_device = VK_NULL_HANDLE;
             VkShaderModule m_shaderModule = VK_NULL_HANDLE;

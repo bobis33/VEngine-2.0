@@ -8,14 +8,14 @@
 
 namespace ven {
 
+	using pixel = unsigned char;
+
 	///
 	/// @class Image
 	/// @brief Class for image
 	/// @namespace ven
 	///
 	class Image {
-
-        using pixel = unsigned char;
 
     	public:
 

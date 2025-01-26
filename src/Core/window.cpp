@@ -1,38 +1,33 @@
 #include <stdexcept>
 
-#include "VEngine/Image.hpp"
-#include "VEngine/Window.hpp"
+#include "VEngine/Core/Window.hpp"
+#include "Utils/Image.hpp"
 
 GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t height, const std::string &title)
 {
     if (glfwInit() == GLFW_FALSE) {
-        throw std::runtime_error("Failed to initialize GLFW");
+        THROW_ERROR("Failed to initialize GLFW");
     }
-
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
     GLFWwindow *window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title.c_str(), nullptr, nullptr);
     if (window == nullptr) {
         glfwTerminate();
-        throw std::runtime_error("Failed to create window");
+        THROW_ERROR("Failed to create window");
     }
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
     return window;
 }
 
-void ven::Window::createWindowSurface(const VkInstance instance, VkSurfaceKHR *surface) const
+void ven::Window::setWindowIcon(const std::string &path) const
 {
-    if (glfwCreateWindowSurface(instance, m_window, nullptr, surface) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create window surface");
+    const Image image(path);
+    if (image.pixels == nullptr) {
+        THROW_ERROR("Failed to load window icon");
     }
-}
-
-void ven::Window::framebufferResizeCallback(GLFWwindow *window, const int width, const int height)
-{
-    auto *app = static_cast<Window *>(glfwGetWindowUserPointer(window));
-    app->m_framebufferResized = true;
+    const GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
+    glfwSetWindowIcon(m_window, 1, &appIcon);
 }
 
 void ven::Window::setFullscreen(const bool fullscreen, const uint32_t width, const uint32_t height)
@@ -53,15 +48,4 @@ void ven::Window::setFullscreen(const bool fullscreen, const uint32_t width, con
     m_width = width;
     m_height = height;
     */
-}
-
-void ven::Window::setWindowIcon(const std::string &path) const {
-    const Image image(path);
-
-    if (image.pixels == nullptr) {
-        throw std::runtime_error("Failed to load window icon");
-    }
-
-    const GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
-    glfwSetWindowIcon(m_window, 1, &appIcon);
 }

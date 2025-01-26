@@ -22,7 +22,7 @@ namespace ven {
             SwapChain() = default;
             ~SwapChain() = default;
 
-            static void createImageView(const VkDevice& device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageView& imageView);
+            static void createImageView(const VkDevice& device, const VkImage& image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageView& imageView);
 
     }; // class SwapChain
 

@@ -48,9 +48,6 @@ target_include_directories(imgui PRIVATE
 list(APPEND THIRDPARTY_LIBS imgui)
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
-#======================================= STB =======================================#
-list(APPEND THIRDPARTY_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/stb)
-
 #======================================= TINYOBJLOADER =======================================#
 list(APPEND THIRDPARTY_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/tinyobjloader)
 

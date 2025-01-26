@@ -21,23 +21,21 @@ namespace ven {
 
         public:
 
-        explicit Model(const std::string &path);
+            explicit Model(const std::string &path);
+            ~Model() = default;
 
-        ~Model() = default;
+            Model(const Model&) = delete;
+            Model& operator=(const Model&) = delete;
+            Model(Model&&) = delete;
+            Model& operator=(Model&&) = delete;
 
-        Model(const Model&) = delete;
-        Model& operator=(const Model&) = delete;
-        Model(Model&&) = delete;
-        Model& operator=(Model&&) = delete;
-
-
-        [[nodiscard]] const std::vector<Vertex>& getVertices() const { return vertices; }
-        [[nodiscard]] const std::vector<uint32_t>& getIndices() const { return indices; }
+            [[nodiscard]] const std::vector<Vertex>& getVertices() const { return m_vertices; }
+            [[nodiscard]] const std::vector<uint32_t>& getIndices() const { return m_indices; }
 
         private:
 
-        std::vector<Vertex> vertices;
-        std::vector<uint32_t> indices;
+            std::vector<Vertex> m_vertices;
+            std::vector<uint32_t> m_indices;
 
     }; // class Model
 

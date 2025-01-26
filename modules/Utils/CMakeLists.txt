@@ -14,7 +14,7 @@ file(GLOB_RECURSE SOURCES_HEADERS ${INCLUDE_DIRS}/*.hpp)
 
 add_library(${PROJECT_NAME} STATIC ${SOURCES} ${SOURCES_HEADERS})
 
-target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS})
+target_include_directories(${PROJECT_NAME} PRIVATE ${INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/third-party/stb)
 target_compile_options(${PROJECT_NAME} PRIVATE ${WARNING_FLAGS})
 target_link_libraries(${PROJECT_NAME} PRIVATE)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)

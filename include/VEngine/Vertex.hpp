@@ -6,34 +6,25 @@
 
 #pragma once
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-
 #include <vulkan/vulkan_core.h>
 
 namespace ven {
 
     struct Vertex {
+
         glm::vec3 pos;
         glm::vec3 color;
         glm::vec2 texCoord;
 
         bool operator==(const Vertex& other) const { return pos == other.pos && color == other.color && texCoord == other.texCoord; }
 
-        static std::vector<VkVertexInputBindingDescription> getBindingDescriptions() {
-            return {
-                {.binding=0, .stride=sizeof(Vertex), .inputRate=VK_VERTEX_INPUT_RATE_VERTEX}
-            };
-        }
+        static std::vector<VkVertexInputBindingDescription> getBindingDescriptions() { return {{.binding=0, .stride=sizeof(Vertex), .inputRate=VK_VERTEX_INPUT_RATE_VERTEX}}; }
+        static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() { return {
+            {.location=0, .binding=0, .format=VK_FORMAT_R32G32B32_SFLOAT, .offset=offsetof(Vertex, pos)},
+            {.location=1, .binding=0, .format=VK_FORMAT_R32G32B32_SFLOAT, .offset=offsetof(Vertex, color)},
+            {.location=2, .binding=0, .format=VK_FORMAT_R32G32_SFLOAT, .offset=offsetof(Vertex, texCoord)}
+        }; }
 
-        static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
-            return {
-                {.location=0, .binding=0, .format=VK_FORMAT_R32G32B32_SFLOAT, .offset=offsetof(Vertex, pos)},
-                {.location=1, .binding=0, .format=VK_FORMAT_R32G32B32_SFLOAT, .offset=offsetof(Vertex, color)},
-                {.location=2, .binding=0, .format=VK_FORMAT_R32G32_SFLOAT, .offset=offsetof(Vertex, texCoord)}
-            };
-        }
     };
 
 } // namespace ven
