@@ -18,10 +18,8 @@ utl::Logger::Logger()
 std::string utl::Logger::formatLogMessage(const LogLevel level, const std::string& message)
 {
     const auto inTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
     std::ostringstream ss;
     ss << "[" << std::put_time(std::localtime(&inTime), "%Y-%m-%d %X") << "] ";
     ss << "[" << LOG_LEVEL_STRING.at(static_cast<uint8_t>(level)) << "] " << message;
-
     return ss.str();
 }

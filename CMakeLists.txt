@@ -28,7 +28,7 @@ if (BUILD_TESTS)
     include(MakeTests)
 endif ()
 
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS})
 
 add_dependencies(${PROJECT_NAME} thirdparty shaders)
 

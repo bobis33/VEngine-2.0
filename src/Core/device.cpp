@@ -57,8 +57,8 @@ void ven::Device::createInstance()
     createInfo.ppEnabledExtensionNames = extensions.data();
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
     if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(ven::Device::VALIDATION_LAYERS.size());
-        createInfo.ppEnabledLayerNames = ven::Device::VALIDATION_LAYERS.data();
+        createInfo.enabledLayerCount = static_cast<uint32_t>(VALIDATION_LAYERS.size());
+        createInfo.ppEnabledLayerNames = VALIDATION_LAYERS.data();
         populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (&debugCreateInfo);
     } else {
@@ -139,12 +139,12 @@ ven::QueueFamilyIndices ven::Device::findQueueFamilies(const VkPhysicalDevice& d
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
     for (size_t index = 0; const auto& queueFamily : queueFamilies) {
-        if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0U) {
+        if ((queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) != VK_FALSE) {
             indices.graphicsFamily = index;
         }
-        VkBool32 presentSupport = 0U;
+        VkBool32 presentSupport = VK_FALSE;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, index, m_surface, &presentSupport);
-        if (presentSupport != 0U) {
+        if (presentSupport != VK_FALSE) {
             indices.presentFamily = index;
         }
         if (indices.isComplete()) {
@@ -185,7 +185,7 @@ bool ven::Device::isDeviceSuitable(const VkPhysicalDevice& device) const
     }
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-    return indices.isComplete() && extensionsSupported && swapChainAdequate  && (supportedFeatures.samplerAnisotropy != 0U);
+    return indices.isComplete() && extensionsSupported && swapChainAdequate  && (supportedFeatures.samplerAnisotropy != VK_FALSE);
 }
 
 [[nodiscard]] VkSampleCountFlagBits ven::Device::getMaxUsableSampleCount() const
@@ -193,12 +193,12 @@ bool ven::Device::isDeviceSuitable(const VkPhysicalDevice& device) const
     VkPhysicalDeviceProperties physicalDeviceProperties;
     vkGetPhysicalDeviceProperties(m_physicalDevice, &physicalDeviceProperties);
     const VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
-    if ((counts & VK_SAMPLE_COUNT_64_BIT) != 0U) { return VK_SAMPLE_COUNT_64_BIT; }
-    if ((counts & VK_SAMPLE_COUNT_32_BIT) != 0U) { return VK_SAMPLE_COUNT_32_BIT; }
-    if ((counts & VK_SAMPLE_COUNT_16_BIT) != 0U) { return VK_SAMPLE_COUNT_16_BIT; }
-    if ((counts & VK_SAMPLE_COUNT_8_BIT) != 0U) { return VK_SAMPLE_COUNT_8_BIT; }
-    if ((counts & VK_SAMPLE_COUNT_4_BIT) != 0U) { return VK_SAMPLE_COUNT_4_BIT; }
-    if ((counts & VK_SAMPLE_COUNT_2_BIT) != 0U) { return VK_SAMPLE_COUNT_2_BIT; }
+    if ((counts & VK_SAMPLE_COUNT_64_BIT) != VK_FALSE) { return VK_SAMPLE_COUNT_64_BIT; }
+    if ((counts & VK_SAMPLE_COUNT_32_BIT) != VK_FALSE) { return VK_SAMPLE_COUNT_32_BIT; }
+    if ((counts & VK_SAMPLE_COUNT_16_BIT) != VK_FALSE) { return VK_SAMPLE_COUNT_16_BIT; }
+    if ((counts & VK_SAMPLE_COUNT_8_BIT) != VK_FALSE) { return VK_SAMPLE_COUNT_8_BIT; }
+    if ((counts & VK_SAMPLE_COUNT_4_BIT) != VK_FALSE) { return VK_SAMPLE_COUNT_4_BIT; }
+    if ((counts & VK_SAMPLE_COUNT_2_BIT) != VK_FALSE) { return VK_SAMPLE_COUNT_2_BIT; }
     return VK_SAMPLE_COUNT_1_BIT;
 }
 
@@ -264,7 +264,7 @@ uint32_t ven::Device::findMemoryType(const uint32_t typeFilter, const VkMemoryPr
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
     for (uint32_t index = 0; index < memProperties.memoryTypeCount; index++) {
-        if (((typeFilter & (1 << index)) != 0U) && (memProperties.memoryTypes[index].propertyFlags & properties) == properties) {
+        if (((typeFilter & (1 << index)) != VK_FALSE) && (memProperties.memoryTypes[index].propertyFlags & properties) == properties) {
             return index;
         }
     }

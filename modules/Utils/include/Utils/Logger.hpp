@@ -28,19 +28,14 @@ namespace utl {
 
         public:
 
-            static Logger& getInstance() { static Logger instance; return instance; }
-
             template <typename Func>
-            static void logExecutionTime(const std::string& message, Func&& func)
+            static void logExecutionTime(const std::string& message, const Func&& func)
             {
-                Clock clock;
+                const Clock clock;
                 func();
-                clock.update();
-                const float duration = clock.getDeltaTimeMS();
-
+                const float duration = clock.getDeltaSeconds() * 1000.0F;
                 std::cout << getColorForDuration(duration) << formatLogMessage(LogLevel::INFO, message + " took " + std::to_string(duration) + " ms") << LOG_LEVEL_COLOR.at(3);
             }
-
             static void logWarning(const std::string& message) { std::cout << LOG_LEVEL_COLOR.at(2) << formatLogMessage(LogLevel::WARNING, message) << LOG_LEVEL_COLOR.at(3); }
 
         private:
@@ -50,8 +45,7 @@ namespace utl {
 
             Logger();
 
-            static const char* getColorForDuration(const float duration) { return duration < 20.0F ? LOG_LEVEL_COLOR.at(1) : (duration < 90.0F ? LOG_LEVEL_COLOR.at(2) : LOG_LEVEL_COLOR.at(0)); }
-
+            [[nodiscard]] static const char* getColorForDuration(const float duration) { return duration < 20.0F ? LOG_LEVEL_COLOR.at(1) : (duration < 90.0F ? LOG_LEVEL_COLOR.at(2) : LOG_LEVEL_COLOR.at(0)); }
             [[nodiscard]] static std::string formatLogMessage(LogLevel level, const std::string& message);
 
     }; // class Logger

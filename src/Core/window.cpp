@@ -6,14 +6,14 @@
 GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t height, const std::string &title)
 {
     if (glfwInit() == GLFW_FALSE) {
-        THROW_ERROR("Failed to initialize GLFW");
+        utl::THROW_ERROR("Failed to initialize GLFW");
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
     GLFWwindow *window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title.c_str(), nullptr, nullptr);
     if (window == nullptr) {
         glfwTerminate();
-        THROW_ERROR("Failed to create window");
+        utl::THROW_ERROR("Failed to create window");
     }
     glfwSetWindowUserPointer(window, this);
     glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
@@ -22,9 +22,9 @@ GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t heigh
 
 void ven::Window::setWindowIcon(const std::string &path) const
 {
-    const Image image(path);
+    const utl::Image image(path);
     if (image.pixels == nullptr) {
-        THROW_ERROR("Failed to load window icon");
+        utl::THROW_ERROR("Failed to load window icon");
     }
     const GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
     glfwSetWindowIcon(m_window, 1, &appIcon);

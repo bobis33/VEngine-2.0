@@ -34,7 +34,7 @@ namespace ven {
             Window(Window&&) = delete;
             Window& operator=(Window&&) = delete;
 
-            void createWindowSurface(const VkInstance& instance, VkSurfaceKHR* surface) const { if (glfwCreateWindowSurface(instance, m_window, nullptr, surface) != VK_SUCCESS) { THROW_ERROR("Failed to create window surface"); } }
+            void createWindowSurface(const VkInstance& instance, VkSurfaceKHR* surface) const { if (glfwCreateWindowSurface(instance, m_window, nullptr, surface) != VK_SUCCESS) { utl::THROW_ERROR("Failed to create window surface"); } }
             static void setFullscreen(bool fullscreen, uint32_t width, uint32_t height);
             [[nodiscard]] bool wasWindowResized() const { return m_framebufferResized; }
             void resetWindowResizedFlag() { m_framebufferResized = false; }

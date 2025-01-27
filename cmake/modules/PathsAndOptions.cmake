@@ -53,3 +53,4 @@ if(WIN32)
 endif()
 
 file(GLOB_RECURSE SOURCES ${SRC_DIR}/*.cpp)
+file(GLOB_RECURSE HEADERS ${INCLUDE_DIR}/*.hpp)
