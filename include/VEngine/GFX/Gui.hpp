@@ -31,7 +31,7 @@ namespace ven {
             Gui(Gui&&) = delete;
             Gui& operator=(Gui&&) = delete;
 
-            void render(VkCommandBuffer& commandBuffer);
+            void render(const VkCommandBuffer& commandBuffer) const;
 
         private:
 

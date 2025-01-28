@@ -1,8 +1,5 @@
-#include <array>
 #include <limits>
-#include <vector>
 
-#include "Utils/ErrorHandling.hpp"
 #include "VEngine/GFX/SwapChain.hpp"
 
 static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
@@ -42,6 +39,11 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const 
     actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
     actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
     return actualExtent;
+}
+
+VkResult ven::SwapChain::acquireNextImage(uint32_t &imageIndex, const uint32_t currentFrame) const {
+    vkWaitForFences(m_device.getVkDevice(), 1, &m_inFlightFences[currentFrame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    return vkAcquireNextImageKHR(m_device.getVkDevice(), m_swapChain, std::numeric_limits<uint64_t>::max(), m_imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 }
 
 VkFormat ven::SwapChain::findSupportedFormat(const Device& device, const std::vector<VkFormat>& candidates, const VkImageTiling tiling, const VkFormatFeatureFlags features) {
@@ -238,6 +240,27 @@ void ven::SwapChain::createRenderPass() {
     renderPassInfo.pDependencies = &dependency;
     if (vkCreateRenderPass(m_device.getVkDevice(), &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
         utl::THROW_ERROR("failed to create render pass!");
+    }
+}
+
+void ven::SwapChain::createSyncObjects() {
+    m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        if (vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
+            vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
+            vkCreateFence(m_device.getVkDevice(), &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS) {
+            utl::THROW_ERROR("failed to create synchronization objects for a frame!");
+            }
     }
 }
 

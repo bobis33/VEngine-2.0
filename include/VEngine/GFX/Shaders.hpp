@@ -9,6 +9,8 @@
 #include <string_view>
 #include <vector>
 
+#include <vulkan/vulkan_core.h>
+
 namespace ven {
 
     static constexpr std::string_view SHADERS_BIN_PATH = "build/shaders/";
@@ -22,8 +24,7 @@ namespace ven {
 
         public:
 
-            Shaders(const VkDevice device, const std::vector<char>& code) : m_device{device} { createShaderModule(m_device, code); }
-            // ~Shaders() { vkDestroyShaderModule(m_device, m_shaderModule, nullptr); }
+            explicit Shaders(const VkDevice& device) : m_device{device} { }
             ~Shaders() = default;
 
             Shaders(const Shaders&) = delete;
@@ -31,16 +32,16 @@ namespace ven {
             Shaders(Shaders&&) = delete;
             Shaders& operator=(Shaders&&) = delete;
 
-            void deleteResources() const { vkDestroyShaderModule(m_device, m_shaderModule, nullptr); }
+            void createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass);
 
-            [[nodiscard]] VkShaderModule getShaderModule() const { return m_shaderModule; }
+            [[nodiscard]] VkPipeline& getGraphicsPipeline() { return m_graphicsPipeline; }
 
         private:
 
-            void createShaderModule(const VkDevice& device, const std::vector<char>& code);
+            void createShaderModule(const std::vector<char>& code, VkShaderModule& shaderModule) const;
 
-            VkDevice m_device = VK_NULL_HANDLE;
-            VkShaderModule m_shaderModule = VK_NULL_HANDLE;
+            const VkDevice& m_device;
+            VkPipeline m_graphicsPipeline{nullptr};
 
     }; // class Shaders
 

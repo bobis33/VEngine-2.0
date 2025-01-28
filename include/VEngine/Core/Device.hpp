@@ -42,12 +42,15 @@ namespace ven {
 
         public:
 
-            explicit Device(const Window& window): m_window{window} { createInstance(); setupDebugMessenger(); m_window.createWindowSurface(m_instance, &m_surface); pickPhysicalDevice(); createLogicalDevice(); }
+            explicit Device(const Window& window): m_window{window} { createInstance(); setupDebugMessenger(); m_window.createWindowSurface(m_instance, &m_surface); pickPhysicalDevice(); createLogicalDevice(); createCommandPool(); }
             ~Device();
 
             void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const;
             void beginSingleTimeCommands(VkCommandBuffer& commandBuffer) const;
             void endSingleTimeCommands(const VkCommandBuffer& commandBuffer) const;
+            void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const;
+            void copyBufferToImage(const VkBuffer& buffer, const VkImage& image, uint32_t width, uint32_t height) const;
+            void transitionImageLayout(const VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) const;
             [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
             [[nodiscard]] QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device) const;
             [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice& device) const;
@@ -59,7 +62,7 @@ namespace ven {
             [[nodiscard]] const VkPhysicalDevice& getPhysicalDevice() const { return m_physicalDevice; }
             [[nodiscard]] const VkQueue& getGraphicsQueue() const { return m_graphicsQueue; }
             [[nodiscard]] const VkQueue& getPresentQueue() const { return m_presentQueue; }
-            [[nodiscard]] VkCommandPool& getCommandPool() { return m_commandPool; }
+            [[nodiscard]] const VkCommandPool& getCommandPool() const { return m_commandPool; }
 
         private:
 
@@ -67,6 +70,7 @@ namespace ven {
             void setupDebugMessenger();
             void pickPhysicalDevice();
             void createLogicalDevice();
+            void createCommandPool();
 
             [[nodiscard]] static std::vector<const char *> getRequiredExtensions();
             [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;

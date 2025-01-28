@@ -3,8 +3,7 @@
 
 static bool IsLegacyNativeDupe(const ImGuiKey key) { return key >= 0 && key < 512; };
 
-static void initStyle()
-{
+static void initStyle() {
     ImGuiStyle& style = ImGui::GetStyle();
     style.Alpha = 1.0;
     style.WindowRounding = 3;
@@ -46,8 +45,7 @@ static void initStyle()
     style.Colors[ImGuiCol_TextSelectedBg] = ImVec4(0.00F, 1.00F, 1.00F, 0.22F);
 }
 
-void createDescriptorPool(const VkDevice& device, VkDescriptorPool& pool)
-{
+void createDescriptorPool(const VkDevice& device, VkDescriptorPool& pool) {
     static constexpr uint16_t DESCRIPTOR_COUNT = 1000;
     static constexpr std::array<VkDescriptorPoolSize, 11> pool_sizes = {{
         { .type=VK_DESCRIPTOR_TYPE_SAMPLER, .descriptorCount=DESCRIPTOR_COUNT },
@@ -74,8 +72,7 @@ void createDescriptorPool(const VkDevice& device, VkDescriptorPool& pool)
     }
 }
 
-void inputsSection(const ImGuiIO& io)
-{
+void inputsSection(const ImGuiIO& io) {
     if (ImGui::CollapsingHeader("Input")) {
         ImGui::IsMousePosValid() ? ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y) : ImGui::Text("Mouse pos: <INVALID>");
         ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
@@ -96,8 +93,7 @@ void inputsSection(const ImGuiIO& io)
     }
 }
 
-void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties)
-{
+void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties) {
     if (ImGui::CollapsingHeader("Device Properties")) {
         if (ImGui::BeginTable("DevicePropertiesTable", 2)) {
             ImGui::TableNextColumn(); ImGui::Text("Device Name: %s", deviceProperties.deviceName);
@@ -122,8 +118,7 @@ void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties)
     }
 }
 
-void ven::Gui::render(VkCommandBuffer& commandBuffer)
-{
+void ven::Gui::render(const VkCommandBuffer& commandBuffer) const {
     const ImGuiIO& io = ImGui::GetIO();
     const float frameRate = io.Framerate;
     ImGui_ImplVulkan_NewFrame();
