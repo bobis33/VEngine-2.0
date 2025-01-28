@@ -47,14 +47,14 @@ namespace utl {
             template <typename Duration = std::chrono::seconds>
             [[nodiscard]] auto getElapsed() const { return std::chrono::duration_cast<Duration>(now() - m_start - m_pausedDuration); }
 
-    private:
+        private:
 
-        using Duration = std::chrono::high_resolution_clock::duration;
+            using Duration = std::chrono::high_resolution_clock::duration;
 
-        TimePoint m_start;
-        TimePoint m_pausedTime;
-        Duration m_pausedDuration;
-        bool m_isPaused{false};
+            TimePoint m_start;
+            TimePoint m_pausedTime;
+            Duration m_pausedDuration;
+            bool m_isPaused{false};
 
     }; // class Clock
 
