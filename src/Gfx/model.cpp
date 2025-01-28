@@ -4,7 +4,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
 
-#include "VEngine/GFX/Model.hpp"
+#include "VEngine/Gfx/Model.hpp"
 
 template<> struct std::hash<ven::Vertex> {
     size_t operator()(ven::Vertex const& vertex) const noexcept {

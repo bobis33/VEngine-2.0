@@ -1,7 +1,7 @@
 #include <array>
 
 #include "Utils/Utils.hpp"
-#include "VEngine/GFX/Shaders.hpp"
+#include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Vertex.hpp"
 
 static void createPipelineShaderStageCreateInfo(VkPipelineShaderStageCreateInfo& shaderStageInfo, const VkShaderStageFlagBits& stage, const VkShaderModule& shaderModule) {

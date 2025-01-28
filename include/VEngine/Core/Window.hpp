@@ -13,10 +13,6 @@
 
 namespace ven {
 
-    static constexpr std::string_view DEFAULT_TITLE = "VEngine";
-    static constexpr uint32_t DEFAULT_WIDTH = 1920;
-    static constexpr uint32_t DEFAULT_HEIGHT = 1080;
-
     ///
     /// @class Window
     /// @brief Class for window
@@ -25,6 +21,10 @@ namespace ven {
     class Window {
 
         public:
+
+            static constexpr std::string_view DEFAULT_TITLE = "VEngine";
+            static constexpr uint32_t DEFAULT_WIDTH = 1920;
+            static constexpr uint32_t DEFAULT_HEIGHT = 1080;
 
             explicit Window(const uint32_t width = DEFAULT_WIDTH, const uint32_t height = DEFAULT_HEIGHT) : m_window(createWindow(width, height, DEFAULT_TITLE.data())) { setWindowIcon("assets/icons/icon64x64.png"); }
             ~Window() { glfwDestroyWindow(m_window); glfwTerminate(); m_window = nullptr; }
@@ -43,9 +43,9 @@ namespace ven {
             static void waitEvents() { glfwWaitEvents(); }
 
             [[nodiscard]] VkExtent2D getExtent() const { int width = 0; int height = 0; glfwGetFramebufferSize(m_window, &width, &height); return {static_cast<uint32_t>(width), static_cast<uint32_t>(height)}; }
+            [[nodiscard]] GLFWwindow* getGLFWwindow() const { return m_window; }
             void getFramebufferSize(int& width, int& height) const { glfwGetFramebufferSize(m_window, &width, &height); }
             [[nodiscard]] static const char **getRequiredInstanceExtensions(uint32_t *count) { return glfwGetRequiredInstanceExtensions(count); }
-            [[nodiscard]] GLFWwindow* getGLFWwindow() const { return m_window; }
 
         private:
 

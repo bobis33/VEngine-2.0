@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "VEngine/GFX/SwapChain.hpp"
+#include "VEngine/Gfx/SwapChain.hpp"
 
 namespace ven {
 
@@ -19,7 +19,7 @@ namespace ven {
 
         public:
 
-            Renderer(const Window &window, const Device &device) : m_device{device}, m_swapChain{m_device, window.getExtent()} {  }
+            Renderer(const Window &window, const Device &device) : m_device{device}, m_window{window}, m_swapChain{m_device, window.getExtent()} {  }
             ~Renderer() = default;
 
             Renderer(const Renderer &) = delete;
@@ -28,6 +28,7 @@ namespace ven {
             Renderer& operator=(Renderer &&) = delete;
 
             void createCommandBuffers();
+            void recreateSwapChain();
 
             [[nodiscard]] SwapChain& getSwapChain() { return m_swapChain; }
             [[nodiscard]] std::vector<VkCommandBuffer>& getCommandBuffers() { return m_commandBuffers; }
@@ -35,6 +36,7 @@ namespace ven {
         private:
 
             const Device& m_device;
+            const Window& m_window;
             SwapChain m_swapChain;
             std::vector<VkCommandBuffer> m_commandBuffers;
 

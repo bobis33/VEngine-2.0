@@ -1,8 +1,7 @@
-#include <iostream>
-
 #include "VEngine/Engine.hpp"
 
 int main() {
+
     try {
         Engine().run();
     } catch (const std::exception& e) {

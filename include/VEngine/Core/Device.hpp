@@ -42,7 +42,10 @@ namespace ven {
 
         public:
 
-            explicit Device(const Window& window): m_window{window} { createInstance(); setupDebugMessenger(); m_window.createWindowSurface(m_instance, &m_surface); pickPhysicalDevice(); createLogicalDevice(); createCommandPool(); }
+            static constexpr std::array<const char*, 1> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+            static constexpr std::array<const char*, 1> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
+
+            explicit Device(const Window& window): m_window{window} { setupDebugMessenger(); createInstance(); m_window.createWindowSurface(m_instance, &m_surface); pickPhysicalDevice(); createLogicalDevice(); createCommandPool(); }
             ~Device();
 
             void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) const;
@@ -51,6 +54,7 @@ namespace ven {
             void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) const;
             void copyBufferToImage(const VkBuffer& buffer, const VkImage& image, uint32_t width, uint32_t height) const;
             void transitionImageLayout(const VkImage& image, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels) const;
+            void waitIdle() const { vkDeviceWaitIdle(m_device); }
             [[nodiscard]] uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) const;
             [[nodiscard]] QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice& device) const;
             [[nodiscard]] SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice& device) const;
@@ -72,12 +76,8 @@ namespace ven {
             void createLogicalDevice();
             void createCommandPool();
 
-            [[nodiscard]] static std::vector<const char *> getRequiredExtensions();
             [[nodiscard]] VkSampleCountFlagBits getMaxUsableSampleCount() const;
-            [[nodiscard]] static bool checkDeviceExtensionSupport(const VkPhysicalDevice& device);
-            [[nodiscard]] static bool checkValidationLayerSupport();
             [[nodiscard]] bool isDeviceSuitable(const VkPhysicalDevice& device) const;
-            static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 
             const Window& m_window;
 
@@ -90,9 +90,6 @@ namespace ven {
             VkCommandPool m_commandPool = VK_NULL_HANDLE;
             VkSampleCountFlagBits m_msaaSamples = VK_SAMPLE_COUNT_1_BIT;
             VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
-
-            static constexpr std::array<const char*, 1> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-            static constexpr std::array<const char*, 1> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
     }; // class Device
 

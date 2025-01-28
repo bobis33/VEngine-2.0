@@ -1,6 +1,6 @@
 #include <limits>
 
-#include "VEngine/GFX/SwapChain.hpp"
+#include "VEngine/Gfx/SwapChain.hpp"
 
 static VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
     for (const auto& availableFormat : availableFormats) {
@@ -150,36 +150,29 @@ void ven::SwapChain::createImage(const uint32_t width, const uint32_t height, co
     imageInfo.usage = usage;
     imageInfo.samples = numSamples;
     imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
     if (vkCreateImage(m_device.getVkDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
         utl::THROW_ERROR("failed to create image!");
     }
-
     VkMemoryRequirements memRequirements;
     vkGetImageMemoryRequirements(m_device.getVkDevice(), image, &memRequirements);
-
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = m_device.findMemoryType(memRequirements.memoryTypeBits, properties);
-
     if (vkAllocateMemory(m_device.getVkDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         utl::THROW_ERROR("failed to allocate image memory!");
     }
-
     vkBindImageMemory(m_device.getVkDevice(), image, imageMemory, 0);
 }
 
 void ven::SwapChain::createColorResources() {
     const VkFormat colorFormat = m_format;
-
     createImage(m_extent.width, m_extent.height, 1, m_device.getMsaaSamples(), colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_colorImage, m_colorImageMemory);
     createImageView(m_colorImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT, 1, m_colorImageView);
 }
 
 void ven::SwapChain::createDepthResources() {
     const VkFormat depthFormat = findDepthFormat(m_device);
-
     createImage(m_extent.width, m_extent.height, 1, m_device.getMsaaSamples(), depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
     createImageView(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, 1, m_depthImageView);
 }
@@ -247,35 +240,37 @@ void ven::SwapChain::createSyncObjects() {
     m_imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     m_renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     m_inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-        if (vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(m_device.getVkDevice(), &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS) {
+        if (vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS || vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS || vkCreateFence(m_device.getVkDevice(), &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS) {
             utl::THROW_ERROR("failed to create synchronization objects for a frame!");
-            }
+        }
     }
 }
 
 void ven::SwapChain::cleanupSwapChain() {
-    vkDestroyImageView(m_device.getVkDevice(), m_depthImageView, nullptr);
-    vkDestroyImage(m_device.getVkDevice(), m_depthImage, nullptr);
-    vkFreeMemory(m_device.getVkDevice(), m_depthImageMemory, nullptr);
-    vkDestroyImageView(m_device.getVkDevice(), m_colorImageView, nullptr);
-    vkDestroyImage(m_device.getVkDevice(), m_colorImage, nullptr);
-    vkFreeMemory(m_device.getVkDevice(), m_colorImageMemory, nullptr);
+    const VkDevice& device = m_device.getVkDevice();
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        vkDestroySemaphore(device, m_renderFinishedSemaphores[i], nullptr);
+        vkDestroySemaphore(device, m_imageAvailableSemaphores[i], nullptr);
+        vkDestroyFence(device, m_inFlightFences[i], nullptr);
+    }
+    vkDestroyImageView(device, m_depthImageView, nullptr);
+    vkDestroyImage(device, m_depthImage, nullptr);
+    vkFreeMemory(device, m_depthImageMemory, nullptr);
+    vkDestroyImageView(device, m_colorImageView, nullptr);
+    vkDestroyImage(device, m_colorImage, nullptr);
+    vkFreeMemory(device, m_colorImageMemory, nullptr);
     for (auto *const frameBuffer : m_swapChainFrameBuffers) {
-        vkDestroyFramebuffer(m_device.getVkDevice(), frameBuffer, nullptr);
+        vkDestroyFramebuffer(device, frameBuffer, nullptr);
     }
     for (auto *const imageView : m_imageViews) {
-        vkDestroyImageView(m_device.getVkDevice(), imageView, nullptr);
+        vkDestroyImageView(device, imageView, nullptr);
     }
-    vkDestroySwapchainKHR(m_device.getVkDevice(), m_swapChain, nullptr);
+    vkDestroySwapchainKHR(device, m_swapChain, nullptr);
+    vkDestroyRenderPass(device, m_renderPass, nullptr);
 }

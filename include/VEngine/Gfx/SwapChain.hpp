@@ -24,7 +24,7 @@ namespace ven {
             static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
             SwapChain(const Device& device, const VkExtent2D& windowExtent) : m_device(device), m_windowExtent(windowExtent) { init(); }
-            ~SwapChain() { for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {vkDestroySemaphore(m_device.getVkDevice(), m_renderFinishedSemaphores[i], nullptr); vkDestroySemaphore(m_device.getVkDevice(), m_imageAvailableSemaphores[i], nullptr); vkDestroyFence(m_device.getVkDevice(), m_inFlightFences[i], nullptr);}}
+            ~SwapChain() { cleanupSwapChain(); }
 
             void init() { createSwapChain(); createImageViews(); createColorResources(); createDepthResources(); createFrameBuffers(); createRenderPass(); createSyncObjects(); }
             void createImageView(const VkImage& image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageView& imageView) const;

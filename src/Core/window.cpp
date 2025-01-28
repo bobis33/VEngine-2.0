@@ -18,11 +18,11 @@ GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t heigh
 }
 
 void ven::Window::setWindowIcon(const std::string& path) const {
-    const utl::Image image(path);
+    static const utl::Image image(path);
     if (image.pixels == nullptr) {
         utl::THROW_ERROR("Failed to load window icon");
     }
-    const GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
+    static const GLFWimage appIcon{ .width = image.width, .height = image.height, .pixels = image.pixels };
     glfwSetWindowIcon(m_window, 1, &appIcon);
 }
 

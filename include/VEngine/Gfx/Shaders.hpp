@@ -25,7 +25,7 @@ namespace ven {
         public:
 
             explicit Shaders(const VkDevice& device) : m_device{device} { }
-            ~Shaders() = default;
+            ~Shaders() { vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr); }
 
             Shaders(const Shaders&) = delete;
             Shaders& operator=(const Shaders&) = delete;

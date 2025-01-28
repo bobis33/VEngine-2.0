@@ -1,5 +1,4 @@
-#include "Utils/ErrorHandling.hpp"
-#include "VEngine/GFX/Gui.hpp"
+#include "VEngine/Gfx/Gui.hpp"
 
 static bool IsLegacyNativeDupe(const ImGuiKey key) { return key >= 0 && key < 512; };
 
@@ -47,7 +46,7 @@ static void initStyle() {
 
 void createDescriptorPool(const VkDevice& device, VkDescriptorPool& pool) {
     static constexpr uint16_t DESCRIPTOR_COUNT = 1000;
-    static constexpr std::array<VkDescriptorPoolSize, 11> pool_sizes = {{
+    static constexpr std::array<VkDescriptorPoolSize, 11> poolSizes = {{
         { .type=VK_DESCRIPTOR_TYPE_SAMPLER, .descriptorCount=DESCRIPTOR_COUNT },
         { .type=VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, .descriptorCount=DESCRIPTOR_COUNT },
         { .type=VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, .descriptorCount=DESCRIPTOR_COUNT},
@@ -59,15 +58,14 @@ void createDescriptorPool(const VkDevice& device, VkDescriptorPool& pool) {
         { .type=VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, .descriptorCount=DESCRIPTOR_COUNT },
         { .type=VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, .descriptorCount=DESCRIPTOR_COUNT },
         { .type=VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, .descriptorCount=DESCRIPTOR_COUNT }}};
-    static constexpr VkDescriptorPoolCreateInfo pool_info {
+    static constexpr VkDescriptorPoolCreateInfo poolInfo {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
-        .pNext = nullptr,
         .flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT,
         .maxSets = DESCRIPTOR_COUNT,
-        .poolSizeCount = pool_sizes.size(),
-        .pPoolSizes = pool_sizes.data()
+        .poolSizeCount = poolSizes.size(),
+        .pPoolSizes = poolSizes.data()
     };
-    if (vkCreateDescriptorPool(device, &pool_info, nullptr, &pool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &pool) != VK_SUCCESS) {
         utl::THROW_ERROR("Failed to create ImGui descriptor pool");
     }
 }
