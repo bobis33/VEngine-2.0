@@ -1,5 +1,5 @@
-#include "VEngine/Core/Window.hpp"
 #include "Utils/Image.hpp"
+#include "VEngine/Core/Window.hpp"
 
 GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t height, const std::string& title) {
     if (glfwInit() == GLFW_FALSE) {

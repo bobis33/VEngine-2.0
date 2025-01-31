@@ -109,3 +109,23 @@ void ven::Texture::createTextureImage(const std::string &filepath, const SwapCha
     vkFreeMemory(m_device.getVkDevice(), stagingBufferMemory, nullptr);
     generateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, image.width, image.height, m_mipLevels);
 }
+
+void ven::Texture::createDefaultTextureImage(const SwapChain& swapChain) {
+    const uint32_t texWidth = 1;
+    const uint32_t texHeight = 1;
+    const uint32_t imageSize = texWidth * texHeight * 4;
+    m_mipLevels = 1;
+    const std::vector<uint8_t> pixels = {255, 255, 255, 255};
+    VkBuffer stagingBuffer = nullptr;
+    VkDeviceMemory stagingBufferMemory = nullptr;
+    m_device.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    void* data = nullptr;
+    vkMapMemory(m_device.getVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
+    memcpy(data, pixels.data(), static_cast<size_t>(imageSize));
+    vkUnmapMemory(m_device.getVkDevice(), stagingBufferMemory);
+    swapChain.createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
+    m_device.transitionImageLayout(m_textureImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels);
+    m_device.copyBufferToImage(stagingBuffer, m_textureImage, texWidth, texHeight);
+    vkDestroyBuffer(m_device.getVkDevice(), stagingBuffer, nullptr);
+    vkFreeMemory(m_device.getVkDevice(), stagingBufferMemory, nullptr);
+}

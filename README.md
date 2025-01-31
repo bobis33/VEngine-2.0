@@ -6,6 +6,7 @@
 
 https://docs.vulkan.org/tutorial/latest
 
+https://docs.vulkan.org/samples/latest/README.html
 
 ## Commit Norms
 

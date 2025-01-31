@@ -13,6 +13,10 @@
 
 namespace ven {
 
+    struct PushConstantData {
+        uint32_t textureIndex; // L'indice de la texture
+    };
+
     static constexpr std::string_view SHADERS_BIN_PATH = "build/shaders/";
 
     ///

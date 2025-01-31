@@ -12,14 +12,14 @@ template<> struct std::hash<ven::Vertex> {
     }
 };
 
-ven::Model::Model(const std::string &path) {
+ven::Model::Model(const Device& device, const std::string &path): m_device(device) {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     std::string warn;
     std::string err;
     if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str())) {
-        throw std::runtime_error(warn + err);
+        utl::THROW_ERROR((warn + err).c_str());
     }
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
     for (const auto& shape : shapes) {
