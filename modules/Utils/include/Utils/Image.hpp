@@ -14,7 +14,7 @@ namespace utl {
 
         using pixel = unsigned char;
 
-        explicit Image(const std::string &path);
+        explicit Image(const std::string& path);
         ~Image();
 
         pixel* pixels = nullptr;

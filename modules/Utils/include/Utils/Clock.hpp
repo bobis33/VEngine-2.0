@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <cassert>
+#include <ostream>
 #include <chrono>
 
 namespace utl {
@@ -37,7 +37,6 @@ namespace utl {
             void pause() { if (!m_isPaused) { m_pausedTime = now(); m_isPaused = true; } }
             void resume() { if (m_isPaused) { m_pausedDuration += now() - m_pausedTime; m_isPaused = false; } }
             [[nodiscard]] float getDeltaSeconds() const {
-                assert(m_start.time_since_epoch().count() != 0 && "Clock not started yet!");
                 if (m_isPaused) {
                     return std::chrono::duration<float>(m_pausedTime - m_start - m_pausedDuration).count();
                 }
