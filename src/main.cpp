@@ -1,13 +1,11 @@
-#include "VEngine/Engine.hpp"
+#include "VEngine/Core/Engine.hpp"
 
 int main() {
-
     try {
-        Engine().run();
+        ven::Engine().run();
     } catch (const std::exception& e) {
-        std::cerr << e.what() << '\n';
+        utl::printError(e.what());
         return EXIT_FAILURE;
     }
-
     return EXIT_SUCCESS;
 }

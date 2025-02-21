@@ -1,8 +1,6 @@
-#include <array>
-
 #include "Utils/Utils.hpp"
 #include "VEngine/Gfx/Shaders.hpp"
-#include "VEngine/Vertex.hpp"
+#include "VEngine/Gfx/Resources/Vertex.hpp"
 
 static void createPipelineShaderStageCreateInfo(VkPipelineShaderStageCreateInfo& shaderStageInfo, const VkShaderStageFlagBits& stage, const VkShaderModule& shaderModule) {
     shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -18,14 +16,14 @@ void ven::Shaders::createShaderModule(const std::vector<char>& code, VkShaderMod
     createInfo.codeSize = code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
     if (vkCreateShaderModule(m_device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-        utl::THROW_ERROR("failed to create shader module");
+        throw utl::THROW_ERROR("failed to create shader module");
     }
 }
 
 void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass)
 {
-    VkShaderModule vertShader;
-    VkShaderModule fragShader;
+    VkShaderModule vertShader = nullptr;
+    VkShaderModule fragShader = nullptr;
     createShaderModule(utl::readFile("build/shaders/vertex_shader.spv"), vertShader);
     createShaderModule(utl::readFile("build/shaders/fragment_shader.spv"), fragShader);
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
@@ -98,7 +96,7 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
     if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-        utl::THROW_ERROR("failed to create pipeline layout!");
+        throw utl::THROW_ERROR("failed to create pipeline layout!");
     }
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -117,7 +115,7 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
     if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS) {
-        utl::THROW_ERROR("failed to create graphics pipeline!");
+        throw utl::THROW_ERROR("failed to create graphics pipeline!");
     }
     vkDestroyShaderModule(m_device, vertShader, nullptr);
     vkDestroyShaderModule(m_device, fragShader, nullptr);

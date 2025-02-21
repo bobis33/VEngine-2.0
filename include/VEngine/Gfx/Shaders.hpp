@@ -6,9 +6,6 @@
 
 #pragma once
 
-#include <string_view>
-#include <vector>
-
 #include <vulkan/vulkan_core.h>
 
 namespace ven {
@@ -34,7 +31,7 @@ namespace ven {
 
             void createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass);
 
-            [[nodiscard]] VkPipeline& getGraphicsPipeline() { return m_graphicsPipeline; }
+            [[nodiscard]] const VkPipeline& getGraphicsPipeline() const { return m_graphicsPipeline; }
 
         private:
 

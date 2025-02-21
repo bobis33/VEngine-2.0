@@ -4,8 +4,7 @@
 
 #include "Utils/Logger.hpp"
 
-utl::Logger::Logger()
-{
+utl::Logger::Logger() {
 #ifdef _WIN32
     const HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
@@ -15,8 +14,7 @@ utl::Logger::Logger()
 #endif
 }
 
-std::string utl::Logger::formatLogMessage(const LogLevel level, const std::string& message)
-{
+std::string utl::Logger::formatLogMessage(const LogLevel level, const std::string& message) {
     const auto inTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::ostringstream ss;
     ss << "[" << std::put_time(std::localtime(&inTime), "%Y-%m-%d %X") << "] ";

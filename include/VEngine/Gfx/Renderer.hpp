@@ -6,7 +6,9 @@
 
 #pragma once
 
-#include "VEngine/Gfx/SwapChain.hpp"
+#include "VEngine/Gfx/Backend/SwapChain.hpp"
+#include "VEngine/Gfx/Resources/Model.hpp"
+#include "VEngine/Gui/Gui.hpp"
 
 namespace ven {
 
@@ -19,7 +21,7 @@ namespace ven {
 
         public:
 
-            Renderer(const Window &window, const Device &device) : m_device{device}, m_window{window}, m_swapChain{m_device, window.getExtent()} {  }
+            Renderer(const Window &window, const Device &device) : m_device(device), m_window(window), m_swapChain(m_device, window.getExtent()), m_gui(m_device, m_window.getGLFWWindow()) {  }
             ~Renderer() = default;
 
             Renderer(const Renderer &) = delete;
@@ -29,15 +31,18 @@ namespace ven {
 
             void createCommandBuffers();
             void recreateSwapChain();
+            void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, uint32_t indiceSize, const VkDescriptorSet* descriptorSets, const std::vector<Model>& models) const;
 
-            [[nodiscard]] SwapChain& getSwapChain() { return m_swapChain; }
-            [[nodiscard]] std::vector<VkCommandBuffer>& getCommandBuffers() { return m_commandBuffers; }
+            [[nodiscard]] const SwapChain& getSwapChain() const { return m_swapChain; }
+            [[nodiscard]] const std::vector<VkCommandBuffer>& getCommandBuffers() const { return m_commandBuffers; }
 
         private:
 
+            static constexpr std::array m_clearValues{VkClearValue{.color = {0.0F, 0.0F, 0.0F, 1.0F}}, VkClearValue{.depthStencil = {1.0F, 0}}};
             const Device& m_device;
             const Window& m_window;
             SwapChain m_swapChain;
+            Gui m_gui;
             std::vector<VkCommandBuffer> m_commandBuffers;
 
     }; // class Renderer
