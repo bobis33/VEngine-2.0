@@ -95,8 +95,6 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-    //PushConstant TOREMOVE?
-    pipelineLayoutInfo.pushConstantRangeCount = 1;
     if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to create pipeline layout!");
     }

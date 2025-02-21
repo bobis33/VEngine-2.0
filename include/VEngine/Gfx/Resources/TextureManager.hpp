@@ -20,31 +20,31 @@ namespace ven {
 
         public:
 
-            static std::shared_ptr<Texture> getTexture(const Device& device, const SwapChain& swapChain, const std::string& filepath) {
+            [[nodiscard]] static std::shared_ptr<Texture> getTexture(const Device& device, const SwapChain& swapChain, const std::string& filepath) {
                 auto& instance = getInstance();
                 if (instance.m_texturePaths.contains(filepath)) {
-                    const int index = instance.m_texturePaths[filepath];
+                    const uint32_t index = instance.m_texturePaths[filepath];
                     return instance.m_textures[index];
                 }
-                const int newIndex = instance.m_nextIndex++;
+                const uint32_t newIndex = instance.m_nextIndex++;
                 auto texture = std::make_shared<Texture>(device, swapChain, filepath);
                 instance.m_textures[newIndex] = texture;
                 instance.m_texturePaths[filepath] = newIndex;
                 return texture;
             }
 
-            static std::shared_ptr<Texture> getTexturePath(const int index) {
+            [[nodiscard]] static const std::shared_ptr<Texture>& getTexturePath(const int index) {
                 if (auto& instance = getInstance(); instance.m_textures.contains(index)) {
                     return instance.m_textures[index];
                 }
-                return nullptr;
+                throw utl::THROW_ERROR(("Texture not found with index: " + std::to_string(index)).c_str());
             }
 
-            static int getTextureIndex(const std::string& filepath) {
+            [[nodiscard]] static uint32_t getTextureIndex(const std::string& filepath) {
                 if (auto& instance = getInstance(); instance.m_texturePaths.contains(filepath)) {
                     return instance.m_texturePaths[filepath];
                 }
-                return -1;
+                throw utl::THROW_ERROR(("Texture not found with path: " + filepath).c_str());
             }
 
             static void clean() {
@@ -53,13 +53,16 @@ namespace ven {
                 }
             }
 
+            [[nodiscard]] static const std::unordered_map<uint32_t, std::shared_ptr<Texture>>& getTextures() { return getInstance().m_textures; }
+            [[nodiscard]] static size_t getTextureSize() { return getInstance().m_textures.size(); }
+
         private:
 
-            int m_nextIndex = 0;
-            std::unordered_map<int, std::shared_ptr<Texture>> m_textures;
-            std::unordered_map<std::string, int> m_texturePaths;
+            uint32_t m_nextIndex = 0;
+            std::unordered_map<uint32_t, std::shared_ptr<Texture>> m_textures;
+            std::unordered_map<std::string, uint32_t> m_texturePaths;
 
-            static TextureManager& getInstance() {
+            [[nodiscard]] static TextureManager& getInstance() {
                 static TextureManager instance;
                 return instance;
             }

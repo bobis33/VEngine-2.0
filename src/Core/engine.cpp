@@ -18,15 +18,13 @@ void ven::Engine::initVulkan() {
 }
 
 void ven::Engine::loadAssets() {
-    std::vector modelPaths = {MODEL_PATH, MODEL_PATH_3};
+    std::vector modelPaths = {MODEL_PATH_3, MODEL_PATH};
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     uint32_t vertexOffset = 0;
     for (const auto& path : modelPaths) {
-        m_models.emplace_back(m_device, m_renderer.getSwapChain(), path);
-        Model& model = m_models.back();
-        utl::Logger::logInfo("Model at " + path + " has " + std::to_string(model.getMeshes().size()) + " meshes");
-        for (const auto& mesh : model.getMeshes()) {
+        utl::Logger::logExecutionTime("Creating model at " + path, [&] {m_models.emplace_back(m_device, m_renderer.getSwapChain(), path);});
+        for (Model& model = m_models.back(); const auto& mesh : model.getMeshes()) {
             for (const auto& vertex : mesh->getVertices()) {
                 vertices.push_back(vertex);
             }
@@ -109,12 +107,12 @@ void ven::Engine::createDescriptorSets() {
         uboWrite.pBufferInfo = &bufferInfo;
         descriptorWrites.push_back(uboWrite);
         std::vector<VkDescriptorImageInfo> imageInfos;
-        for (const auto& model : m_models) {
-            for (const auto& mesh : model.getMeshes()) {
+        for (int textureIndex = 0; textureIndex < TextureManager::getTextureSize(); textureIndex++) {
+            if (TextureManager::getTexturePath(textureIndex)) {
                 VkDescriptorImageInfo imageInfo{};
                 imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                imageInfo.imageView = mesh->getTexture()->getTextureImageView();
-                imageInfo.sampler = mesh->getTexture()->getTextureSampler();
+                imageInfo.imageView = TextureManager::getTexturePath(textureIndex)->getTextureImageView();
+                imageInfo.sampler = TextureManager::getTexturePath(textureIndex)->getTextureSampler();
                 imageInfos.push_back(imageInfo);
             }
         }
@@ -124,7 +122,7 @@ void ven::Engine::createDescriptorSets() {
         samplerWrite.dstBinding = 1;
         samplerWrite.dstArrayElement = 0;
         samplerWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        samplerWrite.descriptorCount = 1;
+        samplerWrite.descriptorCount = static_cast<uint32_t>(imageInfos.size());
         samplerWrite.pImageInfo = imageInfos.data();
         descriptorWrites.push_back(samplerWrite);
         vkUpdateDescriptorSets(m_device.getVkDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
@@ -146,7 +144,7 @@ void ven::Engine::drawFrame() {
     updateUniformBuffer(currentFrame);
     vkResetFences(m_device.getVkDevice(), 1, &m_renderer.getSwapChain().getInFlightFences()[currentFrame]);
     vkResetCommandBuffer(m_renderer.getCommandBuffers()[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    m_renderer.recordCommandBuffer(m_renderer.getCommandBuffers()[currentFrame], imageIndex, m_shadersModule.getGraphicsPipeline(), vertexBuffer, indexBuffer, pipelineLayout, m_indicesSize, &descriptorSets[currentFrame]);
+    m_renderer.recordCommandBuffer(m_renderer.getCommandBuffers()[currentFrame], imageIndex, m_shadersModule.getGraphicsPipeline(), vertexBuffer, indexBuffer, pipelineLayout, m_indicesSize, &descriptorSets[currentFrame], m_models);
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     const std::array waitSemaphores = {m_renderer.getSwapChain().getImageAvailableSemaphores()[currentFrame]};

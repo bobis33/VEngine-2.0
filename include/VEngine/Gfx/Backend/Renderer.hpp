@@ -7,6 +7,7 @@
 #pragma once
 
 #include "VEngine/Gfx/Backend/SwapChain.hpp"
+#include "VEngine/Gfx/Resources/Model.hpp"
 #include "VEngine/Gui/Gui.hpp"
 
 namespace ven {
@@ -30,7 +31,7 @@ namespace ven {
 
             void createCommandBuffers();
             void recreateSwapChain();
-            void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, uint32_t indiceSize, const VkDescriptorSet* descriptorSets) const;
+            void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, uint32_t indiceSize, const VkDescriptorSet* descriptorSets, const std::vector<Model>& models) const;
 
             [[nodiscard]] const SwapChain& getSwapChain() const { return m_swapChain; }
             [[nodiscard]] const std::vector<VkCommandBuffer>& getCommandBuffers() const { return m_commandBuffers; }

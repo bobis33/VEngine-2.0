@@ -28,7 +28,7 @@ namespace ven {
                 uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
                 VkDescriptorSetLayoutBinding samplerLayoutBinding{};
                 samplerLayoutBinding.binding = 1;
-                samplerLayoutBinding.descriptorCount = 1;
+                samplerLayoutBinding.descriptorCount = 25; // TODO: change this to a dynamic value (textures size)
                 samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                 samplerLayoutBinding.pImmutableSamplers = nullptr;
                 samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;

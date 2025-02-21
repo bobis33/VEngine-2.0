@@ -77,8 +77,10 @@ std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiS
         if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
             newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
+            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
         } else {
             newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/default.png"));
+            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/default.png"));
         }
     }
     return newMesh;

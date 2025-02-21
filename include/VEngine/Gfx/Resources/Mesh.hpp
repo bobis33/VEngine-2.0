@@ -28,10 +28,12 @@ namespace ven {
             void addVertex(const Vertex& vertex) { vertices.push_back(vertex); }
             void addIndex(const uint32_t index) { indices.push_back(index); }
             void setTexture(const std::shared_ptr<Texture>& texture) { m_texture = texture; }
+            void setTextureIndex(const int index) { for (auto& vertex : vertices) { vertex.textureIndex = index; } }
 
             [[nodiscard]] const std::shared_ptr<Texture>& getTexture() const { return m_texture; }
             [[nodiscard]] const std::vector<Vertex>& getVertices() const { return vertices; }
             [[nodiscard]] const std::vector<uint32_t>& getIndices() const { return indices; }
+            [[nodiscard]] int getTextureIndex() const { return vertices[0].textureIndex; }
 
         private:
 
