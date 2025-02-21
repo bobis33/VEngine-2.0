@@ -22,10 +22,10 @@ namespace ven {
 
         public:
 
-            static constexpr uint32_t DEFAULT_WIDTH = 1920;
-            static constexpr uint32_t DEFAULT_HEIGHT = 1080;
+            static constexpr uint16_t DEFAULT_WIDTH = 1920;
+            static constexpr uint16_t DEFAULT_HEIGHT = 1080;
 
-            explicit Window(const uint32_t width = 1920, const uint32_t height = 1080) : m_window(createWindow(width, height, "VEngine")) { setWindowIcon("assets/icons/icon64x64.png"); }
+            explicit Window(const uint16_t width = DEFAULT_WIDTH, const uint16_t height = DEFAULT_HEIGHT) : m_window(createWindow(width, height, "VEngine")) { setWindowIcon("assets/icons/icon64x64.png"); }
             ~Window() { glfwTerminate(); }
 
             Window(const Window&) = delete;
@@ -34,7 +34,7 @@ namespace ven {
             Window& operator=(Window&&) = delete;
 
             void createWindowSurface(const VkInstance& instance, VkSurfaceKHR* surface) const { if (glfwCreateWindowSurface(instance, m_window, nullptr, surface) != VK_SUCCESS) { throw utl::THROW_ERROR("Failed to create window surface"); } }
-            static void setFullscreen(bool fullscreen, uint32_t width, uint32_t height);
+            static void setFullscreen(bool fullscreen, uint16_t width, uint16_t height);
             [[nodiscard]] bool wasWindowResized() const { return m_frameBufferResized; }
             void resetWindowResizedFlag() { m_frameBufferResized = false; }
             static void pollEvents() { glfwPollEvents(); }
@@ -48,7 +48,7 @@ namespace ven {
 
         private:
 
-            [[nodiscard]] GLFWwindow* createWindow(uint32_t width, uint32_t height, const std::string &title);
+            [[nodiscard]] GLFWwindow* createWindow(uint16_t width, uint16_t height, const std::string &title);
             void setWindowIcon(const std::string& path) const;
             static void frameBufferResizeCallback(GLFWwindow* window, int width, int height) { static_cast<Window *>(glfwGetWindowUserPointer(window))->m_frameBufferResized = true; }
 

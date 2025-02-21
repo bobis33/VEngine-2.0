@@ -1,13 +1,13 @@
 #include "Utils/Image.hpp"
 #include "VEngine/Core/Window.hpp"
 
-GLFWwindow* ven::Window::createWindow(const uint32_t width, const uint32_t height, const std::string& title) {
+GLFWwindow* ven::Window::createWindow(const uint16_t width, const uint16_t height, const std::string& title) {
     if (glfwInit() == GLFW_FALSE) {
         throw utl::THROW_ERROR("Failed to initialize GLFW");
     }
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    GLFWwindow *window = glfwCreateWindow(static_cast<int>(width), static_cast<int>(height), title.c_str(), nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
     if (window == nullptr) {
         glfwTerminate();
         throw utl::THROW_ERROR("Failed to create window");
@@ -26,7 +26,7 @@ void ven::Window::setWindowIcon(const std::string& path) const {
     glfwSetWindowIcon(m_window, 1, &appIcon);
 }
 
-void ven::Window::setFullscreen(const bool fullscreen, const uint32_t width, const uint32_t height) {
+void ven::Window::setFullscreen(const bool fullscreen, const uint16_t width, const uint16_t height) {
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
 

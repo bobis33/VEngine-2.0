@@ -19,7 +19,7 @@ namespace ven {
 
         public:
 
-            static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
+            static constexpr uint8_t MAX_FRAMES_IN_FLIGHT = 2;
 
             SwapChain(const Device& device, const VkExtent2D& windowExtent) : m_device{device}, m_windowExtent{windowExtent} { init(); }
             ~SwapChain() { cleanupSwapChain(); }

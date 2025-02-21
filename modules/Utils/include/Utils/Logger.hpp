@@ -11,7 +11,6 @@
 
 #include "Utils/Clock.hpp"
 
-
 namespace utl {
 
     enum class LogLevel : uint8_t {
@@ -34,8 +33,7 @@ namespace utl {
             Logger &operator=(Logger &&) = delete;
 
             template <typename Func>
-            static void logExecutionTime(const std::string& message, const Func&& func)
-            {
+            static void logExecutionTime(const std::string& message, const Func&& func) {
                 const Clock clock;
                 func();
                 const float duration = clock.getDeltaSeconds() * 1000.0F;

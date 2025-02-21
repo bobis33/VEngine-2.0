@@ -6,15 +6,12 @@
 
 #pragma once
 
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "Utils/Clock.hpp"
+#include "VEngine/Core/EventManager.hpp"
 #include "VEngine/Gfx/Renderer.hpp"
 #include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Gfx/Backend/Descriptors/Pool.hpp"
 #include "VEngine/Gfx/Backend/Descriptors/SetLayout.hpp"
-#include "VEngine/Gfx/Resources/Model.hpp"
 
 namespace ven {
 
@@ -33,7 +30,11 @@ namespace ven {
                 alignas(16) glm::mat4 proj;
             };
 
-            Engine(): m_window(Window::DEFAULT_WIDTH, Window::DEFAULT_HEIGHT), m_device(m_window), m_descriptorPool(m_device.getVkDevice()), m_descriptorSetLayout(m_device.getVkDevice()), m_renderer(m_window, m_device), m_shadersModule(m_device.getVkDevice()) { initVulkan(); }
+            Engine(): m_window(Window::DEFAULT_WIDTH, Window::DEFAULT_HEIGHT), m_device(m_window),
+                      m_descriptorPool(m_device.getVkDevice()), m_descriptorSetLayout(m_device.getVkDevice()),
+                      m_renderer(m_window, m_device), m_shadersModule(m_device.getVkDevice()),
+                      m_eventManager(m_camera, m_window) { initVulkan(); }
+
             ~Engine() { cleanup(); }
 
             Engine(const Engine &) = delete;
@@ -71,6 +72,8 @@ namespace ven {
             DescriptorSetLayout m_descriptorSetLayout;
             Renderer m_renderer;
             Shaders m_shadersModule;
+            Camera m_camera;
+            EventManager m_eventManager;
             utl::Clock m_clock;
             std::vector<Model> m_models;
 

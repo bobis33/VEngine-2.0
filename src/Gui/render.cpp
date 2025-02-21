@@ -107,8 +107,7 @@ namespace FrameTimeGraphUtil {
 
 double get_memory_usage() {
     std::ifstream file("/proc/self/statm");
-    long rss = 0;
-    if (file >> rss) {
+    if (long rss = 0; file >> rss) {
         return rss * sysconf(_SC_PAGE_SIZE) / (1024.0 * 1024.0); // Mémoire en Mo
     }
     return 0.0;
@@ -117,7 +116,7 @@ double get_memory_usage() {
 void DisplayMemoryStats() {
     std::ifstream file("/proc/meminfo");
     if (!file.is_open()) {
-        ImGui::Text("Erreur lors de l'ouverture de /proc/meminfo");
+        ImGui::Text("Failed to open /proc/meminfo");
         return;
     }
     static constexpr double KB_TO_MB = 1024.0;

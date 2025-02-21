@@ -247,7 +247,7 @@ void ven::SwapChain::createSyncObjects() {
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         if (vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_imageAvailableSemaphores[i]) != VK_SUCCESS || vkCreateSemaphore(m_device.getVkDevice(), &semaphoreInfo, nullptr, &m_renderFinishedSemaphores[i]) != VK_SUCCESS || vkCreateFence(m_device.getVkDevice(), &fenceInfo, nullptr, &m_inFlightFences[i]) != VK_SUCCESS) {
             throw utl::THROW_ERROR("failed to create synchronization objects for a frame!");
         }
@@ -256,7 +256,7 @@ void ven::SwapChain::createSyncObjects() {
 
 void ven::SwapChain::cleanupSwapChain() {
     const VkDevice& device = m_device.getVkDevice();
-    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint8_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroySemaphore(device, m_renderFinishedSemaphores[i], nullptr);
         vkDestroySemaphore(device, m_imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(device, m_inFlightFences[i], nullptr);

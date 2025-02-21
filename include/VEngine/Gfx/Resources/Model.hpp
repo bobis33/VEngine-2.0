@@ -57,8 +57,8 @@ namespace ven {
             std::vector<std::unique_ptr<Mesh>> m_meshes;
             TextureMap m_textures;
 
-            void processNode(const aiNode* node, const aiScene* scene, const Device& device, const SwapChain& swapChain);
-            static std::unique_ptr<Mesh> processMesh(const aiMesh* mesh, const aiScene* scene, const Device& device, const SwapChain& swapChain);
+            void processNode(const aiNode* node, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4 &parentTransform);
+            static std::unique_ptr<Mesh> processMesh(const aiMesh* mesh, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4& transform);
 
     }; // class Model
 

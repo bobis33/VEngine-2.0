@@ -1,3 +1,4 @@
+#include "Utils/ErrorHandling.hpp"
 #include "Utils/Utils.hpp"
 #include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Gfx/Resources/Vertex.hpp"
@@ -9,8 +10,7 @@ static void createPipelineShaderStageCreateInfo(VkPipelineShaderStageCreateInfo&
     shaderStageInfo.pName = "main";
 }
 
-void ven::Shaders::createShaderModule(const std::vector<char>& code, VkShaderModule& shaderModule) const
-{
+void ven::Shaders::createShaderModule(const std::vector<char>& code, VkShaderModule& shaderModule) const {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
@@ -20,8 +20,7 @@ void ven::Shaders::createShaderModule(const std::vector<char>& code, VkShaderMod
     }
 }
 
-void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass)
-{
+void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass) {
     VkShaderModule vertShader = nullptr;
     VkShaderModule fragShader = nullptr;
     createShaderModule(utl::readFile("build/shaders/vertex_shader.spv"), vertShader);

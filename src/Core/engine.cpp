@@ -1,13 +1,6 @@
-#include <cstring>
-
 #include "Utils/Logger.hpp"
 #include "VEngine/Core/Engine.hpp"
 #include "VEngine/Gfx/Resources/TextureManager.hpp"
-
-static const std::string MODEL_PATH = "assets/models/viking_room.obj";
-static const std::string MODEL_PATH_2 = "assets/models/flat_vase.obj";
-static const std::string MODEL_PATH_3 = "assets/models/sponza/sponza.obj";
-static const std::string MODEL_PATH_4 = "assets/models/book.obj";
 
 void ven::Engine::initVulkan() {
     loadAssets();
@@ -18,12 +11,12 @@ void ven::Engine::initVulkan() {
 }
 
 void ven::Engine::loadAssets() {
-    std::vector modelPaths = {MODEL_PATH_3, MODEL_PATH};
+    std::vector<std::string> modelPaths = {"assets/models/sponza/sponza.obj"};
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     uint32_t vertexOffset = 0;
     for (const auto& path : modelPaths) {
-        utl::Logger::logExecutionTime("Creating model at " + path, [&] {m_models.emplace_back(m_device, m_renderer.getSwapChain(), path);});
+        utl::Logger::logExecutionTime("Loading model: " + path, [&] { m_models.emplace_back(m_device, m_renderer.getSwapChain(), path); });
         for (Model& model = m_models.back(); const auto& mesh : model.getMeshes()) {
             for (const auto& vertex : mesh->getVertices()) {
                 vertices.push_back(vertex);
@@ -34,6 +27,7 @@ void ven::Engine::loadAssets() {
             vertexOffset += static_cast<uint32_t>(mesh->getVertices().size());
         }
     }
+    utl::Logger::logInfo("Textures loaded: " + std::to_string(TextureManager::getTextureSize()));
     m_indicesSize = static_cast<uint32_t>(indices.size());
     Model::createBuffer(m_device, vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer, vertexBufferMemory);
     Model::createBuffer(m_device, indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer, indexBufferMemory);
@@ -41,7 +35,8 @@ void ven::Engine::loadAssets() {
 
 void ven::Engine::run() {
     while (!m_window.shouldClose()) {
-        Window::pollEvents();
+        m_eventManager.handleEvents(m_clock.getDeltaSeconds());
+        m_clock.restart();
         drawFrame();
     }
     m_device.waitIdle();
@@ -51,7 +46,7 @@ void ven::Engine::cleanup() const {
     const VkDevice& device = m_device.getVkDevice();
     TextureManager::clean();
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
         vkDestroyBuffer(device, uniformBuffers[i], nullptr);
         vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
     }
@@ -65,7 +60,7 @@ void ven::Engine::createUniformBuffers() {
     uniformBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
     uniformBuffersMemory.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
     uniformBuffersMapped.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
-    for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
         m_device.createBuffer(m_uniformBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
         vkMapMemory(m_device.getVkDevice(), uniformBuffersMemory[i], 0, m_uniformBufferSize, 0, &uniformBuffersMapped[i]);
     }
@@ -73,9 +68,9 @@ void ven::Engine::createUniformBuffers() {
 
 void ven::Engine::updateUniformBuffer(const uint32_t currentImage) const {
     UniformBufferObject ubo{};
-    ubo.model = glm::rotate(glm::mat4(1.0F), m_clock.getDeltaSeconds() * glm::radians(10.0F), glm::vec3(0.0F, 0.0F, 1.0F));
-    ubo.view = glm::lookAt(glm::vec3(2.0F, 2.0F, 2.0F), glm::vec3(0.0F, 0.0F, 0.0F), glm::vec3(0.0F, 0.0F, 1.0F));
-    ubo.proj = glm::perspective(glm::radians(45.0F), static_cast<float>(m_renderer.getSwapChain().getExtent().width) / static_cast<float>(m_renderer.getSwapChain().getExtent().height), 0.1F, 10.0F);
+    ubo.model = glm::mat4(1.0F);
+    ubo.view = m_camera.getViewMatrix();
+    ubo.proj = m_camera.getProjectionMatrix(static_cast<float>(m_renderer.getSwapChain().getExtent().width) / static_cast<float>(m_renderer.getSwapChain().getExtent().height));
     ubo.proj[1][1] *= -1;
     memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }
@@ -91,7 +86,7 @@ void ven::Engine::createDescriptorSets() {
     if (vkAllocateDescriptorSets(m_device.getVkDevice(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to allocate descriptor sets!");
     }
-    for (size_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+    for (uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = uniformBuffers[i];
         bufferInfo.offset = 0;
@@ -107,14 +102,12 @@ void ven::Engine::createDescriptorSets() {
         uboWrite.pBufferInfo = &bufferInfo;
         descriptorWrites.push_back(uboWrite);
         std::vector<VkDescriptorImageInfo> imageInfos;
-        for (int textureIndex = 0; textureIndex < TextureManager::getTextureSize(); textureIndex++) {
-            if (TextureManager::getTexturePath(textureIndex)) {
-                VkDescriptorImageInfo imageInfo{};
-                imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                imageInfo.imageView = TextureManager::getTexturePath(textureIndex)->getTextureImageView();
-                imageInfo.sampler = TextureManager::getTexturePath(textureIndex)->getTextureSampler();
-                imageInfos.push_back(imageInfo);
-            }
+        for (uint8_t textureIndex = 0; textureIndex < TextureManager::getTextureSize(); textureIndex++) {
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = TextureManager::getTexturePath(textureIndex)->getTextureImageView();
+            imageInfo.sampler = TextureManager::getTexturePath(textureIndex)->getTextureSampler();
+            imageInfos.push_back(imageInfo);
         }
         VkWriteDescriptorSet samplerWrite{};
         samplerWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

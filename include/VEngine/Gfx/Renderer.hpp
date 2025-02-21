@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "VEngine/Gfx/Backend/SwapChain.hpp"
 #include "VEngine/Gfx/Resources/Model.hpp"
 #include "VEngine/Gui/Gui.hpp"
 

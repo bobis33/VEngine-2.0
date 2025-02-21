@@ -13,6 +13,20 @@ template<> struct std::hash<ven::Vertex> {
     }
 };
 
+glm::mat4 aiMatrixToGlm(const aiMatrix4x4& matrix) {
+    glm::mat4 result;
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            result[j][i] = matrix[i][j];
+        }
+    }
+    return result;
+}
+
+glm::mat4 getNodeTransformation(const aiNode* node) {
+    return aiMatrixToGlm(node->mTransformation);;
+}
+
 ven::Model::Model(const Device& device, const SwapChain& swapChain, const std::string& path)
     : m_device(device), m_swapChain(swapChain) {
     Assimp::Importer importer;
@@ -20,20 +34,22 @@ ven::Model::Model(const Device& device, const SwapChain& swapChain, const std::s
     if (scene == nullptr || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0U || scene->mRootNode == nullptr) {
         throw utl::THROW_ERROR(importer.GetErrorString());
     }
-    processNode(scene->mRootNode, scene, device, swapChain);
+    processNode(scene->mRootNode, scene, device, swapChain, glm::mat4(1.0F));
 }
 
-void ven::Model::processNode(const aiNode* node, const aiScene* scene, const Device& device, const SwapChain& swapChain) {
+void ven::Model::processNode(const aiNode* node, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4 &parentTransform) {
+    glm::mat4 nodeTransform = getNodeTransformation(node);
+    glm::mat4 globalTransform = parentTransform * nodeTransform;
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-        m_meshes.push_back(processMesh(mesh, scene, device, swapChain));
+        m_meshes.push_back(processMesh(mesh, scene, device, swapChain, globalTransform));
     }
     for (unsigned int i = 0; i < node->mNumChildren; i++) {
-        processNode(node->mChildren[i], scene, device, swapChain);
+        processNode(node->mChildren[i], scene, device, swapChain, globalTransform);
     }
 }
 
-std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiScene* scene, const Device& device, const SwapChain& swapChain) {
+std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4& transform) {
     auto newMesh = std::make_unique<Mesh>();
     std::unordered_map<Vertex, uint32_t> uniqueVertices{};
     for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
@@ -52,6 +68,8 @@ std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiS
         } else {
             vertex.texCoord = {0.0F, 0.0F};
         }
+        glm::vec4 transformedPos = transform * glm::vec4(vertex.pos, 1.0f);
+        vertex.pos = glm::vec3(transformedPos);
         if (!uniqueVertices.contains(vertex)) {
             uniqueVertices[vertex] = static_cast<uint32_t>(newMesh->getVertices().size());
             newMesh->addVertex(vertex);

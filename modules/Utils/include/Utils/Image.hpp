@@ -12,12 +12,12 @@ namespace utl {
 
     struct Image {
 
-        using pixel = unsigned char;
+        using pixel = unsigned char*;
 
         explicit Image(const std::string& path);
         ~Image();
 
-        pixel* pixels = nullptr;
+        pixel pixels = nullptr;
         int width = 0;
         int height = 0;
         int channels = 0;
