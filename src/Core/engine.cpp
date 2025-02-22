@@ -4,6 +4,7 @@
 
 void ven::Engine::initVulkan() {
     loadAssets();
+    m_descriptorSetLayout.create(TextureManager::getTextureSize());
     m_shadersModule.createGraphicsPipeline(m_device.getMsaaSamples(), m_descriptorSetLayout.getDescriptorSetLayout(), pipelineLayout, m_renderer.getSwapChain().getRenderPass());
     createUniformBuffers();
     createDescriptorSets();

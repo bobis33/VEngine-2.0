@@ -36,7 +36,7 @@ ven::Gui::~Gui() {
     vkDestroyDescriptorPool(m_device, m_pool, nullptr);
 }
 
-ven::Gui::Gui(const Device& device, GLFWwindow* window): m_device(device.getVkDevice()) {
+ven::Gui::Gui(const Device& device, GLFWwindow* window, const VkRenderPass& renderPass): m_device(device.getVkDevice()) {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGui::GetIO().IniFilename = nullptr;
@@ -49,6 +49,7 @@ ven::Gui::Gui(const Device& device, GLFWwindow* window): m_device(device.getVkDe
     init_info.Queue = device.getGraphicsQueue();
     init_info.PipelineCache = nullptr;
     init_info.DescriptorPool = m_pool;
+    init_info.RenderPass = renderPass;
     init_info.MinImageCount = 3;
     init_info.ImageCount = 3;
     init_info.MSAASamples = device.getMsaaSamples();

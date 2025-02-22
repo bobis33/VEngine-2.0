@@ -88,7 +88,7 @@ void ven::Device::createInstance() {
         .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
         .pEngineName = "VEngine",
         .engineVersion = VK_MAKE_VERSION(0, 0, 1),
-        .apiVersion = VK_API_VERSION_1_4
+        .apiVersion = VK_API_VERSION_1_3
     };
     VkInstanceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -115,6 +115,7 @@ void ven::Device::setupDebugMessenger() {
     if constexpr (!enableValidationLayers) { return; }
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
+    if (m_instance == VK_NULL_HANDLE) { throw utl::THROW_ERROR("instance is null!"); }
     if (CreateDebugUtilsMessengerEXT(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to set up debug messenger!");
     }

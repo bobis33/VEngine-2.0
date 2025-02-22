@@ -45,7 +45,7 @@ namespace ven {
             static constexpr std::array<const char*, 1> DEVICE_EXTENSIONS = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
             static constexpr std::array<const char*, 1> VALIDATION_LAYERS = { "VK_LAYER_KHRONOS_validation" };
 
-            explicit Device(const Window& window): m_window{window} { setupDebugMessenger(); createInstance(); m_window.createWindowSurface(m_instance, &m_surface); pickPhysicalDevice(); createLogicalDevice(); createCommandPool(); }
+            explicit Device(const Window& window): m_window{window} { createInstance(); setupDebugMessenger(); m_window.createWindowSurface(m_instance, &m_surface); pickPhysicalDevice(); createLogicalDevice(); createCommandPool(); }
             ~Device();
 
             Device(const Device &) = delete;

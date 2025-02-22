@@ -20,7 +20,7 @@ namespace ven {
 
         public:
 
-            Renderer(const Window &window, const Device &device) : m_device(device), m_window(window), m_swapChain(m_device, window.getExtent()), m_gui(m_device, m_window.getGLFWWindow()) {  }
+            Renderer(const Window &window, const Device &device) : m_device(device), m_window(window), m_swapChain(m_device, window.getExtent()), m_gui(m_device, m_window.getGLFWWindow(), m_swapChain.getRenderPass()) {  }
             ~Renderer() = default;
 
             Renderer(const Renderer &) = delete;

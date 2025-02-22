@@ -29,7 +29,7 @@ namespace ven {
             SwapChain(SwapChain&&) = delete;
             SwapChain& operator=(SwapChain&&) = delete;
 
-            void init() { createSwapChain(); createImageViews(); createColorResources(); createDepthResources(); createFrameBuffers(); createRenderPass(); createSyncObjects(); }
+            void init() { createSwapChain(); createImageViews(); createColorResources(); createDepthResources(); createRenderPass(); createFrameBuffers(); createSyncObjects(); }
             void createImageView(const VkImage& image, VkFormat format, VkImageAspectFlags aspectFlags, uint32_t mipLevels, VkImageView& imageView) const;
             void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) const;
             void cleanupSwapChain();
@@ -39,7 +39,7 @@ namespace ven {
 
             [[nodiscard]] const VkSwapchainKHR& getSwapChain() const { return m_swapChain; }
             [[nodiscard]] VkFormat getFormat() const { return m_format; }
-            [[nodiscard]] VkExtent2D getExtent() const { return m_extent; }
+            [[nodiscard]] const VkExtent2D& getExtent() const { return m_extent; }
             [[nodiscard]] const std::vector<VkFramebuffer>& getSwapChainFrameBuffers() const { return m_swapChainFrameBuffers; }
             [[nodiscard]] const VkRenderPass& getRenderPass() const { return m_renderPass; }
             [[nodiscard]] const std::vector<VkSemaphore>& getImageAvailableSemaphores() const { return m_imageAvailableSemaphores; }

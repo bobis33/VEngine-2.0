@@ -25,7 +25,7 @@ namespace ven {
                 BlackRed,
             };
 
-            Gui(const Device& device, GLFWwindow* window);
+            Gui(const Device& device, GLFWwindow* window, const VkRenderPass& renderPass);
             ~Gui();
 
             Gui(const Gui&) = delete;
