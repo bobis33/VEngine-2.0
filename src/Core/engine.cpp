@@ -138,7 +138,7 @@ void ven::Engine::drawFrame() {
     updateUniformBuffer(currentFrame);
     vkResetFences(m_device.getVkDevice(), 1, &m_renderer.getSwapChain().getInFlightFences()[currentFrame]);
     vkResetCommandBuffer(m_renderer.getCommandBuffers()[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
-    m_renderer.recordCommandBuffer(m_renderer.getCommandBuffers()[currentFrame], imageIndex, m_shadersModule.getGraphicsPipeline(), vertexBuffer, indexBuffer, pipelineLayout, m_indicesSize, &descriptorSets[currentFrame], m_models);
+    m_renderer.recordCommandBuffer(m_renderer.getCommandBuffers()[currentFrame], imageIndex, m_shadersModule.getGraphicsPipeline(), vertexBuffer, indexBuffer, pipelineLayout, m_indicesSize, &descriptorSets[currentFrame]);
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     const std::array waitSemaphores = {m_renderer.getSwapChain().getImageAvailableSemaphores()[currentFrame]};

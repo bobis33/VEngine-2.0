@@ -36,16 +36,17 @@ ven::Gui::~Gui() {
     vkDestroyDescriptorPool(m_device, m_pool, nullptr);
 }
 
-ven::Gui::Gui(const Device& device, GLFWwindow* window, const VkRenderPass& renderPass): m_device(device.getVkDevice()) {
+ven::Gui::Gui(const Device& device, GLFWwindow* window, const VkRenderPass& renderPass): m_device(device.getVkDevice()), m_pool(VK_NULL_HANDLE), m_deviceProperties() {
     IMGUI_CHECKVERSION();
+    const VkPhysicalDevice &physicalDevice = device.getPhysicalDevice();
     ImGui::CreateContext();
     ImGui::GetIO().IniFilename = nullptr;
     createDescriptorPool(m_device, m_pool);
     ImGui_ImplVulkan_InitInfo init_info{};
     init_info.Instance = device.getVkInstance();
-    init_info.PhysicalDevice = device.getPhysicalDevice();
-    init_info.Device = device.getVkDevice();
-    init_info.QueueFamily = device.findQueueFamilies(device.getPhysicalDevice()).graphicsFamily.value();
+    init_info.PhysicalDevice = physicalDevice;
+    init_info.Device = m_device;
+    init_info.QueueFamily = device.findQueueFamilies(physicalDevice).graphicsFamily.value();
     init_info.Queue = device.getGraphicsQueue();
     init_info.PipelineCache = nullptr;
     init_info.DescriptorPool = m_pool;
@@ -56,6 +57,6 @@ ven::Gui::Gui(const Device& device, GLFWwindow* window, const VkRenderPass& rend
     init_info.Subpass = 0;
     ImGui_ImplVulkan_Init(&init_info);
     ImGui_ImplGlfw_InitForVulkan(window, true);
-    vkGetPhysicalDeviceProperties(device.getPhysicalDevice(), &m_deviceProperties);
+    vkGetPhysicalDeviceProperties(physicalDevice, &m_deviceProperties);
     blackRedTheme();
 }

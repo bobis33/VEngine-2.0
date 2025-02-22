@@ -1,6 +1,6 @@
 #include "VEngine/Gfx/Renderer.hpp"
 
-void ven::Renderer::recordCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t indiceSize, const VkDescriptorSet* descriptorSets, const std::vector<Model>& models) const {
+void ven::Renderer::recordCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t indiceSize, const VkDescriptorSet* descriptorSets) {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {

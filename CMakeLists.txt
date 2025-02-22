@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.30)
 
 project(vengine
         VERSION 0.0.1
-        DESCRIPTION "3D graphics engine"
+        DESCRIPTION "3D game engine"
         LANGUAGES CXX
 )
 

@@ -28,7 +28,7 @@ namespace ven {
             Texture &operator=(Texture &&) = delete;
 
             void createTextureSampler();
-            void createTextureImage(const std::string& filepath, const SwapChain& swapChain);
+            void createTextureImage(const std::string& filePath, const SwapChain& swapChain);
             void createDefaultTextureImage(const SwapChain& swapChain);
             void clean() const { const VkDevice& device = m_device.getVkDevice(); vkDestroySampler(device, m_textureSampler, nullptr); vkDestroyImageView(device, m_textureImageView, nullptr); vkDestroyImage(device, m_textureImage, nullptr); vkFreeMemory(device, m_textureImageMemory, nullptr); }
 

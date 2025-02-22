@@ -30,7 +30,7 @@ namespace ven {
 
             void createCommandBuffers();
             void recreateSwapChain();
-            void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, uint32_t indiceSize, const VkDescriptorSet* descriptorSets, const std::vector<Model>& models) const;
+            void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, uint32_t indiceSize, const VkDescriptorSet* descriptorSets);
 
             [[nodiscard]] const SwapChain& getSwapChain() const { return m_swapChain; }
             [[nodiscard]] const std::vector<VkCommandBuffer>& getCommandBuffers() const { return m_commandBuffers; }

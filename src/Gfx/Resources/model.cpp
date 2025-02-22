@@ -38,8 +38,7 @@ ven::Model::Model(const Device& device, const SwapChain& swapChain, const std::s
 }
 
 void ven::Model::processNode(const aiNode* node, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4 &parentTransform) {
-    glm::mat4 nodeTransform = getNodeTransformation(node);
-    glm::mat4 globalTransform = parentTransform * nodeTransform;
+    const glm::mat4 globalTransform = parentTransform * getNodeTransformation(node);
     for (unsigned int i = 0; i < node->mNumMeshes; i++) {
         const aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         m_meshes.push_back(processMesh(mesh, scene, device, swapChain, globalTransform));
@@ -96,9 +95,17 @@ std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiS
             material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
             newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
             newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
+        } else if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+            material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
+            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
+            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
+        } else if (material->GetTextureCount(aiTextureType_NORMALS) > 0) {
+            material->GetTexture(aiTextureType_NORMALS, 0, &texturePath);
+            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
+            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
         } else {
-            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/default.png"));
-            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/default.png"));
+            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/default.jpg"));
+            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/default.jpg"));
         }
     }
     return newMesh;

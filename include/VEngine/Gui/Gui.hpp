@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "Utils/FrameStats.hpp"
+#include "Utils/MemoryMonitor.hpp"
 #include "VEngine/Gfx/Backend/Device.hpp"
 
 namespace ven {
@@ -20,9 +22,9 @@ namespace ven {
         public:
 
             enum Theme: uint8_t {
-                BlackWhite = 0,
-                BlueGrey,
-                BlackRed,
+                BlackWhite = 0x00,
+                BlueGrey = 0x01,
+                BlackRed = 0x02
             };
 
             Gui(const Device& device, GLFWwindow* window, const VkRenderPass& renderPass);
@@ -33,8 +35,7 @@ namespace ven {
             Gui(Gui&&) = delete;
             Gui& operator=(Gui&&) = delete;
 
-            void render(const VkCommandBuffer& commandBuffer) const;
-
+            void render(const VkCommandBuffer& commandBuffer);
             static void applyTheme(const Theme theme) { switch (theme) { case BlackRed: blackRedTheme(); break; case BlackWhite: blackWhiteTheme(); break; case BlueGrey: blueGreyTheme(); } }
 
         private:
@@ -44,9 +45,11 @@ namespace ven {
             static void blueGreyTheme();
 
             const VkDevice& m_device;
-            VkDescriptorPool m_pool = VK_NULL_HANDLE;
-            VkPhysicalDeviceProperties m_deviceProperties{};
-
+            VkDescriptorPool m_pool;
+            VkPhysicalDeviceProperties m_deviceProperties;
+            float m_graphMaxFps{10000.0F};
+            FrameStats m_frameStats;
+            MemoryMonitor m_memoryMonitor;
     }; // class Gui
 
 } // namespace ven

@@ -3,6 +3,10 @@
 #include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Gfx/Resources/Vertex.hpp"
 
+#ifndef SHADER_PATH
+    #define SHADER_PATH "shaders"
+#endif
+
 static void createPipelineShaderStageCreateInfo(VkPipelineShaderStageCreateInfo& shaderStageInfo, const VkShaderStageFlagBits& stage, const VkShaderModule& shaderModule) {
     shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shaderStageInfo.stage = stage;
@@ -23,8 +27,8 @@ void ven::Shaders::createShaderModule(const std::vector<char>& code, VkShaderMod
 void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass) {
     VkShaderModule vertShader = nullptr;
     VkShaderModule fragShader = nullptr;
-    createShaderModule(utl::readFile("build/shaders/vertex_shader.spv"), vertShader);
-    createShaderModule(utl::readFile("build/shaders/fragment_shader.spv"), fragShader);
+    createShaderModule(utl::readFile(std::string(SHADER_PATH) + "/vertex_shader.spv"), vertShader);
+    createShaderModule(utl::readFile(std::string(SHADER_PATH) + "/fragment_shader.spv"), fragShader);
     VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
     VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
     createPipelineShaderStageCreateInfo(vertShaderStageInfo, VK_SHADER_STAGE_VERTEX_BIT, vertShader);
@@ -59,6 +63,10 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisampling.sampleShadingEnable = VK_FALSE;
     multisampling.rasterizationSamples = msaaSample;
+    multisampling.minSampleShading = 1.0F;
+    multisampling.pSampleMask = nullptr;
+    multisampling.alphaToCoverageEnable = VK_TRUE;
+    multisampling.alphaToOneEnable = VK_FALSE;
     VkPipelineDepthStencilStateCreateInfo depthStencil{};
     depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depthStencil.depthTestEnable = VK_TRUE;
@@ -72,8 +80,8 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
     colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
     VkPipelineColorBlendStateCreateInfo colorBlending{};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

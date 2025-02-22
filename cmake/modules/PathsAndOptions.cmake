@@ -19,7 +19,7 @@ SET(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(THIRDPARTY_LIBRARIES "")
 set(MODULES_LIBRARIES "")
 set(SHADER_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders)
-set(SHADER_BIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/build/shaders)
+set(SHADER_BIN_DIR ${CMAKE_BINARY_DIR}/shaders)
 
 ## todo(bobis33): to fix, check which warning can be used with which compiler and which version
 if (NOT WIN32)

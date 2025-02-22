@@ -9,28 +9,74 @@
 
 #include "VEngine/Gui/Gui.hpp"
 
-static bool IsLegacyNativeDupe(const ImGuiKey key) { return key >= 0 && key < 512; };
+static bool IsLegacyNativeDupe(const ImGuiKey key) { return key >= 0 && key < 512; }
 
-void inputsSection(const ImGuiIO& io) {
-    if (ImGui::BeginMenu("Input")) {
-        ImGui::IsMousePosValid() ? ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y) : ImGui::Text("Mouse pos: <INVALID>");
-        ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
-        ImGui::Text("Mouse down:");
-        for (int i = 0; i < static_cast<int>(std::size(io.MouseDown)); i++) {
-            if (ImGui::IsMouseDown(i)) {
-                ImGui::SameLine();
-                ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]);
-            }
-        }
-        ImGui::Text("Mouse wheel: %.1f", io.MouseWheel);
-        ImGui::Text("Keys down:");
-        for (auto key = static_cast<ImGuiKey>(0); key < ImGuiKey_NamedKey_END; key = static_cast<ImGuiKey>(key + 1)) {
-            if (IsLegacyNativeDupe(key) || !ImGui::IsKeyDown(key)) { continue; }
-            ImGui::SameLine();
-            ImGui::Text((key < ImGuiKey_NamedKey_BEGIN) ? "\"%s\"" : "\"%s\" %d", ImGui::GetKeyName(key), key);
-        }
-        ImGui::EndMenu();
+void frameSection(const float frameRate, const ven::FrameStats& frameStats, float& graphMaxFps) {
+    const auto displayFrameTimes = frameStats.getDisplayFrameTimes();
+    const auto fpsTimes = ven::FrameStats::calculateFPS(displayFrameTimes);
+    const float upperBound = ven::FrameStats::calculateUpperBound(displayFrameTimes);
+    const float avgFrameTime = std::accumulate(displayFrameTimes.begin(), displayFrameTimes.end(), 0.0F) / ven::FrameStats::MAX_FRAME_TIMES;
+    const float minFrameTime = *std::ranges::min_element(displayFrameTimes);
+    const float maxFrameTime = *std::ranges::max_element(displayFrameTimes);
+    const float avgFPS = std::accumulate(fpsTimes.begin(), fpsTimes.end(), 0.0F) / ven::FrameStats::MAX_FRAME_TIMES;
+    const float minFPS = *std::ranges::min_element(fpsTimes);
+    const float maxFPS = *std::ranges::max_element(fpsTimes);
+    ImGui::Text("FPS: %.1f", frameRate);
+    ImGui::PlotHistogram(
+        "##fps",
+        fpsTimes.data(),
+        ven::FrameStats::MAX_FRAME_TIMES,
+        0,
+        nullptr,
+        0.0F,
+        graphMaxFps,
+        ImVec2(290, 60)
+    );
+    ImGui::SliderFloat("Max scale", &graphMaxFps, 0.0F, 10000.0F);
+    ImGui::Text("Frame time: %.3f ms", 1000.0F / frameRate);
+    ImGui::PlotHistogram(
+            "##frame",
+            displayFrameTimes.data(),
+            ven::FrameStats::MAX_FRAME_TIMES,
+            0,
+            nullptr,
+            0.0F,
+            upperBound,
+            ImVec2(290, 60)
+     );
+    if (ImGui::Button("Export Data to CSV")) {
+        frameStats.exportDataToCSV(displayFrameTimes, fpsTimes, "frametimes_and_fps.csv");
     }
+    ImGui::Columns(2, nullptr, false);
+    ImGui::Text("Avg Frame Time: %.3f ms", avgFrameTime * 1000.0F);
+    ImGui::NextColumn();
+    ImGui::Text("Avg FPS: %.1f", avgFPS);
+    ImGui::NextColumn();
+    ImGui::Text("Min Frame Time: %.3f ms", minFrameTime * 1000.0F);
+    ImGui::NextColumn();
+    ImGui::Text("Min FPS: %.1f", minFPS);
+    ImGui::NextColumn();
+    ImGui::Text("Max Frame Time: %.3f ms", maxFrameTime * 1000.0F);
+    ImGui::NextColumn();
+    ImGui::Text("Max FPS: %.1f", maxFPS);
+    ImGui::Columns(1);
+}
+
+void memorySection(const ven::MemoryMonitor& memoryMonitor) {
+    const double totalMemory = memoryMonitor.getTotalMemory();
+    const double usedMemory = memoryMonitor.getMemoryUsage();
+    const double availableMemory = memoryMonitor.getAvailableMemory();
+    const double totalSwap = memoryMonitor.getTotalSwap();
+    const double usedSwap = memoryMonitor.getSwapUsage();
+    const double freeSwap = memoryMonitor.getFreeSwap();
+    std::array<char, 64> memoryUsage;
+    std::array<char, 64> swapUsage;
+    snprintf(memoryUsage.data(), sizeof(memoryUsage), "Memory Usage: %.2f MB / %.2f MB", usedMemory, totalMemory);
+    ImGui::ProgressBar(usedMemory / totalMemory, ImVec2(280.0F, 0.0F), memoryUsage.data());
+    ImGui::Text("Available: %.2f MB", availableMemory);
+    snprintf(swapUsage.data(), sizeof(swapUsage), "Swap Usage: %.2f MB / %.2f MB", usedSwap, totalSwap);
+    ImGui::ProgressBar(usedSwap / totalSwap, ImVec2(280.0F, 0.0F), swapUsage.data());
+    ImGui::Text("Available: %.2f MB", freeSwap);
 }
 
 void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties) {
@@ -59,149 +105,7 @@ void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties)
     }
 }
 
-namespace FrameTimeGraphUtil {
-    constexpr size_t MAX_FRAME_TIMES = 100;
-
-    struct FrameTimeData {
-        std::vector<float> frameTimes;
-        size_t frameTimeIndex;
-
-        FrameTimeData() : frameTimes(MAX_FRAME_TIMES, 0.0f), frameTimeIndex(0) {}
-    };
-
-    void UpdateFrameTimes(FrameTimeData& data, const float frameTime) {
-        data.frameTimes[data.frameTimeIndex] = frameTime;
-        data.frameTimeIndex = (data.frameTimeIndex + 1) % MAX_FRAME_TIMES;
-    }
-
-    std::vector<float> GetDisplayFrameTimes(const FrameTimeData& data) {
-        std::vector<float> displayFrameTimes(MAX_FRAME_TIMES);
-        for (size_t i = 0; i < MAX_FRAME_TIMES; ++i) {
-            displayFrameTimes[i] = data.frameTimes[(data.frameTimeIndex + i) % MAX_FRAME_TIMES];
-        }
-        return displayFrameTimes;
-    }
-
-    std::vector<float> CalculateFPS(const std::vector<float>& frameTimes) {
-        std::vector<float> fpsTimes(frameTimes.size());
-        for (size_t i = 0; i < frameTimes.size(); ++i) {
-            fpsTimes[i] = frameTimes[i] > 0 ? 1.0f / frameTimes[i] : 0.0f;
-        }
-        return fpsTimes;
-    }
-
-    void ExportDataToCSV(const std::vector<float>& frameTimes, const std::vector<float>& fpsTimes, const std::string& filename) {
-        std::ofstream outFile(filename);
-        for (size_t i = 0; i < frameTimes.size(); ++i) {
-            outFile << frameTimes[i] * 1000.0f << ',' << fpsTimes[i] << '\n';
-        }
-        outFile.close();
-    }
-
-    float CalculateUpperBound(const std::vector<float>& data) {
-        const float maxValue = *std::ranges::max_element(data);
-        const float upperBound = maxValue * 1.2f;
-        return upperBound < 0.0005f ? 0.0005f : upperBound;
-    }
-}
-
-double get_memory_usage() {
-    std::ifstream file("/proc/self/statm");
-    if (long rss = 0; file >> rss) {
-        return rss * sysconf(_SC_PAGE_SIZE) / (1024.0 * 1024.0); // Mémoire en Mo
-    }
-    return 0.0;
-}
-
-void DisplayMemoryStats() {
-    std::ifstream file("/proc/meminfo");
-    if (!file.is_open()) {
-        ImGui::Text("Failed to open /proc/meminfo");
-        return;
-    }
-    static constexpr double KB_TO_MB = 1024.0;
-    std::string line;
-    double total_memory = 0.0;
-    double available_memory = 0.0;
-    double swap_total = 0.0;
-    double swap_free = 0.0;
-    std::array<char, 64> memoryUsage;
-    std::array<char, 64> swapUsage;
-
-    while (std::getline(file, line)) {
-        if (line.starts_with("MemTotal:")) {
-            total_memory = std::stod(line.substr(line.find(':') + 1)) / KB_TO_MB;
-        } else if (line.starts_with("MemAvailable:")) {
-            available_memory = std::stod(line.substr(line.find(':') + 1)) / KB_TO_MB;
-        } else if (line.starts_with("SwapTotal:")) {
-            swap_total = std::stod(line.substr(line.find(':') + 1)) / KB_TO_MB;
-        } else if (line.starts_with("SwapFree:")) {
-            swap_free = std::stod(line.substr(line.find(':') + 1)) / KB_TO_MB;
-        }
-    }
-    snprintf(memoryUsage.data(), sizeof(memoryUsage), "Memory Usage: %.2f MB / %.2f MB", total_memory - available_memory, total_memory);
-    ImGui::ProgressBar((total_memory - available_memory) / total_memory, ImVec2(280.0f, 0.0f), memoryUsage.data());
-    ImGui::Text("Available: %.2f MB", available_memory);
-    snprintf(swapUsage.data(), sizeof(swapUsage), "Swap Usage: %.2f MB / %.2f MB", swap_total - swap_free, swap_total);
-    ImGui::ProgressBar((swap_total - swap_free) / swap_total, ImVec2(280.0f, 0.0f), swapUsage.data());
-    ImGui::Text("Available: %.2f MB", swap_free);
-}
-
-void FrameTimeGraph(const float frameTime, const float frameRate) {
-    using namespace FrameTimeGraphUtil;
-    static FrameTimeData frameTimeData;
-    UpdateFrameTimes(frameTimeData, frameTime);
-    const auto displayFrameTimes = GetDisplayFrameTimes(frameTimeData);
-    const auto fpsTimes = CalculateFPS(displayFrameTimes);
-    const float upperBound = CalculateUpperBound(displayFrameTimes);
-    ImGui::Text("FPS: %.1f", frameRate);
-    ImGui::PlotHistogram(
-        "##fps",
-        fpsTimes.data(),
-        MAX_FRAME_TIMES,
-        0,
-        nullptr,
-        0.0f,
-        10000.0f, // Max FPS
-        ImVec2(290, 60)
-    );
-    ImGui::Text("Frame time: %.3f ms", 1000.0f / frameRate);
-    ImGui::PlotHistogram(
-            "##frame",
-            displayFrameTimes.data(),
-            MAX_FRAME_TIMES,
-            0,
-            nullptr,
-            0.0f,
-            upperBound,
-            ImVec2(290, 60)
-            );
-    if (ImGui::Button("Export Data to CSV")) {
-        ExportDataToCSV(displayFrameTimes, fpsTimes, "frametimes_and_fps.csv");
-    }
-    const float avgFrameTime = std::accumulate(displayFrameTimes.begin(), displayFrameTimes.end(), 0.0f) / MAX_FRAME_TIMES;
-    const float minFrameTime = *std::ranges::min_element(displayFrameTimes);
-    const float maxFrameTime = *std::ranges::max_element(displayFrameTimes);
-    const float avgFPS = std::accumulate(fpsTimes.begin(), fpsTimes.end(), 0.0f) / MAX_FRAME_TIMES;
-    const float minFPS = *std::ranges::min_element(fpsTimes);
-    const float maxFPS = *std::ranges::max_element(fpsTimes);
-    ImGui::Columns(2, nullptr, false);
-    ImGui::Text("Avg Frame Time: %.3f ms", avgFrameTime * 1000.0f);
-    ImGui::NextColumn();
-    ImGui::Text("Avg FPS: %.1f", avgFPS);
-    ImGui::NextColumn();
-    ImGui::Text("Min Frame Time: %.3f ms", minFrameTime * 1000.0f);
-    ImGui::NextColumn();
-    ImGui::Text("Min FPS: %.1f", minFPS);
-    ImGui::NextColumn();
-    ImGui::Text("Max Frame Time: %.3f ms", maxFrameTime * 1000.0f);
-    ImGui::NextColumn();
-    ImGui::Text("Max FPS: %.1f", maxFPS);
-    ImGui::Columns(1);
-    DisplayMemoryStats();
-}
-
-void switchTheme() {
+void themeSection() {
     static int selectedTheme = 0;
     static constexpr std::array themesNames = { "BlackWhite", "BlueGrey", "BlackRed" };
     if (ImGui::BeginMenu("Themes")) {
@@ -233,17 +137,29 @@ void switchTheme() {
     }
 }
 
-static void appInfo(const float frameRate) {
-    ImGui::SetNextWindowPos({ImGui::GetIO().DisplaySize.x, 15.0F}, ImGuiCond_Always, {1.0f, 0.0f});
-    ImGui::Begin("Application Info", nullptr,
-                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
-                 ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings |
-                 ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav);
-    ImGui::Text("%.1f FPS\t\n%.3f ms", frameRate, 1000.0f / frameRate);
-    ImGui::End();
+void inputsSection(const ImGuiIO& io) {
+    if (ImGui::BeginMenu("Input")) {
+        ImGui::IsMousePosValid() ? ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y) : ImGui::Text("Mouse pos: <INVALID>");
+        ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
+        ImGui::Text("Mouse down:");
+        for (int i = 0; i < static_cast<int>(std::size(io.MouseDown)); i++) {
+            if (ImGui::IsMouseDown(i)) {
+                ImGui::SameLine();
+                ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]);
+            }
+        }
+        ImGui::Text("Mouse wheel: %.1f", io.MouseWheel);
+        ImGui::Text("Keys down:");
+        for (auto key = static_cast<ImGuiKey>(0); key < ImGuiKey_NamedKey_END; key = static_cast<ImGuiKey>(key + 1)) {
+            if (IsLegacyNativeDupe(key) || !ImGui::IsKeyDown(key)) { continue; }
+            ImGui::SameLine();
+            ImGui::Text((key < ImGuiKey_NamedKey_BEGIN) ? "\"%s\"" : "\"%s\" %d", ImGui::GetKeyName(key), key);
+        }
+        ImGui::EndMenu();
+    }
 }
 
-void ven::Gui::render(const VkCommandBuffer& commandBuffer) const {
+void ven::Gui::render(const VkCommandBuffer& commandBuffer) {
     const ImGuiIO& io = ImGui::GetIO();
     const float frameRate = io.Framerate;
     ImGui_ImplVulkan_NewFrame();
@@ -251,16 +167,19 @@ void ven::Gui::render(const VkCommandBuffer& commandBuffer) const {
     ImGui::NewFrame();
     //ImGui::ShowMetricsWindow();
     //appInfo(frameRate);
-    const float rightPanelWidth = 300.0f;
+    constexpr float rightPanelWidth = 300.0F;
     ImGui::BeginMainMenuBar();
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - rightPanelWidth, 0), ImGuiCond_Always); // Alignement à droite
-    ImGui::SetNextWindowSize(ImVec2(rightPanelWidth, io.DisplaySize.y), ImGuiCond_Always);    // Hauteur de la fenêtre
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]); // Désactiver ActiveColor
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]); // Désactiver TitleBg
-    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]); // Désactiver TitleBg
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]); // Désactiver ActiveColor
+    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - rightPanelWidth, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(rightPanelWidth, io.DisplaySize.y), ImGuiCond_Always);
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
+    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
     if (ImGui::Begin("##Right Panel", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
-        FrameTimeGraph(io.DeltaTime, frameRate);
+        m_frameStats.updateFrameTimes(io.DeltaTime);
+        frameSection(frameRate, m_frameStats, m_graphMaxFps);
+        m_memoryMonitor.update();
+        memorySection(m_memoryMonitor);
         ImGui::Separator();
         ImGui::Separator();
     }
@@ -270,7 +189,7 @@ void ven::Gui::render(const VkCommandBuffer& commandBuffer) const {
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
     inputsSection(io);
-    switchTheme();
+    themeSection();
     devicePropertiesSection(m_deviceProperties);
     ImGui::EndMainMenuBar();
     ImGui::Render();

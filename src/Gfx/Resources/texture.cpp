@@ -31,7 +31,6 @@ void ven::Texture::createTextureSampler() {
 }
 
 void ven::Texture::generateMipmaps(const VkImage image, const VkFormat imageFormat, const int32_t texWidth, const int32_t texHeight, const uint32_t mipLevels) const {
-    // Check if image format supports linear blitting
     VkFormatProperties formatProperties;
     vkGetPhysicalDeviceFormatProperties(m_device.getPhysicalDevice(), imageFormat, &formatProperties);
     if ((formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT) == VK_FALSE) {
@@ -88,9 +87,9 @@ void ven::Texture::generateMipmaps(const VkImage image, const VkFormat imageForm
     m_device.endSingleTimeCommands(commandBuffer);
 }
 
-void ven::Texture::createTextureImage(const std::string &filepath, const SwapChain& swapChain) {
-    utl::Logger::logInfo("Loading texture: " + filepath);
-    const utl::Image image(filepath);
+void ven::Texture::createTextureImage(const std::string &filePath, const SwapChain& swapChain) {
+    utl::Logger::logInfo("Loading texture: " + filePath);
+    const utl::Image image(filePath, 1);
     const auto imageSize = image.width * image.height * 4;
     m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(image.width, image.height)))) + 1;
     if (image.pixels == nullptr) {
@@ -106,7 +105,6 @@ void ven::Texture::createTextureImage(const std::string &filepath, const SwapCha
     swapChain.createImage(image.width, image.height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
     m_device.transitionImageLayout(m_textureImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels);
     m_device.copyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(image.width), static_cast<uint32_t>(image.height));
-    //transitioned to VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL while generating mipmaps
     vkDestroyBuffer(m_device.getVkDevice(), stagingBuffer, nullptr);
     vkFreeMemory(m_device.getVkDevice(), stagingBufferMemory, nullptr);
     generateMipmaps(m_textureImage, VK_FORMAT_R8G8B8A8_SRGB, image.width, image.height, m_mipLevels);
@@ -116,18 +114,15 @@ void ven::Texture::createDefaultTextureImage(const SwapChain& swapChain) {
     VkBuffer stagingBuffer = nullptr;
     VkDeviceMemory stagingBufferMemory = nullptr;
     void* data = nullptr;
-    constexpr uint32_t texWidth = 1;
-    constexpr uint32_t texHeight = 1;
-    constexpr uint32_t imageSize = texWidth * texHeight * 4;
     const std::vector<uint8_t> pixels = {255, 255, 255, 255};
     m_mipLevels = 1;
-    m_device.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
-    vkMapMemory(m_device.getVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, pixels.data(), imageSize);
+    m_device.createBuffer(1, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    vkMapMemory(m_device.getVkDevice(), stagingBufferMemory, 0, 1, 0, &data);
+    memcpy(data, pixels.data(), 1);
     vkUnmapMemory(m_device.getVkDevice(), stagingBufferMemory);
-    swapChain.createImage(texWidth, texHeight, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
+    swapChain.createImage(1, 1, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
     m_device.transitionImageLayout(m_textureImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels);
-    m_device.copyBufferToImage(stagingBuffer, m_textureImage, texWidth, texHeight);
+    m_device.copyBufferToImage(stagingBuffer, m_textureImage, 1, 1);
     vkDestroyBuffer(m_device.getVkDevice(), stagingBuffer, nullptr);
     vkFreeMemory(m_device.getVkDevice(), stagingBufferMemory, nullptr);
 }
