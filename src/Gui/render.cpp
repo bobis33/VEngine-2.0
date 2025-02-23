@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <fstream>
 #include <numeric>
-#include <unistd.h>
 
 #include <imgui_impl_vulkan.h>
 #include <imgui_impl_glfw.h>
@@ -21,45 +20,49 @@ void frameSection(const float frameRate, const ven::FrameStats& frameStats, floa
     const float avgFPS = std::accumulate(fpsTimes.begin(), fpsTimes.end(), 0.0F) / ven::FrameStats::MAX_FRAME_TIMES;
     const float minFPS = *std::ranges::min_element(fpsTimes);
     const float maxFPS = *std::ranges::max_element(fpsTimes);
-    ImGui::Text("FPS: %.1f", frameRate);
-    ImGui::PlotHistogram(
-        "##fps",
-        fpsTimes.data(),
-        ven::FrameStats::MAX_FRAME_TIMES,
-        0,
-        nullptr,
-        0.0F,
-        graphMaxFps,
-        ImVec2(290, 60)
-    );
-    ImGui::SliderFloat("Max scale", &graphMaxFps, 0.0F, 10000.0F);
-    ImGui::Text("Frame time: %.3f ms", 1000.0F / frameRate);
-    ImGui::PlotHistogram(
-            "##frame",
-            displayFrameTimes.data(),
+    if (ImGui::CollapsingHeader("Frame")) {
+        ImGui::Spacing();
+        ImGui::Text("FPS: %.1f", frameRate);
+        ImGui::PlotHistogram(
+            "##fps",
+            fpsTimes.data(),
             ven::FrameStats::MAX_FRAME_TIMES,
             0,
             nullptr,
             0.0F,
-            upperBound,
-            ImVec2(290, 60)
-     );
-    if (ImGui::Button("Export Data to CSV")) {
-        frameStats.exportDataToCSV(displayFrameTimes, fpsTimes, "frametimes_and_fps.csv");
+            graphMaxFps,
+            ImVec2(285, 60)
+        );
+        ImGui::SliderFloat("Max scale", &graphMaxFps, 0.0F, 10000.0F);
+        ImGui::Text("Frame time: %.3f ms", 1000.0F / frameRate);
+        ImGui::PlotHistogram(
+                "##frame",
+                displayFrameTimes.data(),
+                ven::FrameStats::MAX_FRAME_TIMES,
+                0,
+                nullptr,
+                0.0F,
+                upperBound,
+                ImVec2(285, 60)
+         );
+        if (ImGui::Button("Export Data to CSV")) {
+            ven::FrameStats::exportDataToCSV(displayFrameTimes, fpsTimes, "frametimes_and_fps.csv");
+        }
+        ImGui::Columns(2, nullptr, false);
+        ImGui::Text("Avg Frame Time: %.3f ms", avgFrameTime * 1000.0F);
+        ImGui::NextColumn();
+        ImGui::Text("Avg FPS: %.1f", avgFPS);
+        ImGui::NextColumn();
+        ImGui::Text("Min Frame Time: %.3f ms", minFrameTime * 1000.0F);
+        ImGui::NextColumn();
+        ImGui::Text("Min FPS: %.1f", minFPS);
+        ImGui::NextColumn();
+        ImGui::Text("Max Frame Time: %.3f ms", maxFrameTime * 1000.0F);
+        ImGui::NextColumn();
+        ImGui::Text("Max FPS: %.1f", maxFPS);
+        ImGui::Columns(1);
+        ImGui::Spacing();
     }
-    ImGui::Columns(2, nullptr, false);
-    ImGui::Text("Avg Frame Time: %.3f ms", avgFrameTime * 1000.0F);
-    ImGui::NextColumn();
-    ImGui::Text("Avg FPS: %.1f", avgFPS);
-    ImGui::NextColumn();
-    ImGui::Text("Min Frame Time: %.3f ms", minFrameTime * 1000.0F);
-    ImGui::NextColumn();
-    ImGui::Text("Min FPS: %.1f", minFPS);
-    ImGui::NextColumn();
-    ImGui::Text("Max Frame Time: %.3f ms", maxFrameTime * 1000.0F);
-    ImGui::NextColumn();
-    ImGui::Text("Max FPS: %.1f", maxFPS);
-    ImGui::Columns(1);
 }
 
 void memorySection(const ven::MemoryMonitor& memoryMonitor) {
@@ -69,14 +72,66 @@ void memorySection(const ven::MemoryMonitor& memoryMonitor) {
     const double totalSwap = memoryMonitor.getTotalSwap();
     const double usedSwap = memoryMonitor.getSwapUsage();
     const double freeSwap = memoryMonitor.getFreeSwap();
-    std::array<char, 64> memoryUsage;
-    std::array<char, 64> swapUsage;
+    std::array<char, 64> memoryUsage{};
+    std::array<char, 64> swapUsage{};
     snprintf(memoryUsage.data(), sizeof(memoryUsage), "Memory Usage: %.2f MB / %.2f MB", usedMemory, totalMemory);
-    ImGui::ProgressBar(usedMemory / totalMemory, ImVec2(280.0F, 0.0F), memoryUsage.data());
-    ImGui::Text("Available: %.2f MB", availableMemory);
     snprintf(swapUsage.data(), sizeof(swapUsage), "Swap Usage: %.2f MB / %.2f MB", usedSwap, totalSwap);
-    ImGui::ProgressBar(usedSwap / totalSwap, ImVec2(280.0F, 0.0F), swapUsage.data());
-    ImGui::Text("Available: %.2f MB", freeSwap);
+    if (ImGui::CollapsingHeader("Memory")) {
+        ImGui::Spacing();
+        ImGui::ProgressBar(usedMemory / totalMemory, ImVec2(280.0F, 0.0F), memoryUsage.data());
+        ImGui::Text("Available: %.2f MB", availableMemory);
+        ImGui::ProgressBar(usedSwap / totalSwap, ImVec2(280.0F, 0.0F), swapUsage.data());
+        ImGui::Text("Available: %.2f MB", freeSwap);
+        ImGui::Spacing();
+    }
+}
+
+void rendererSection(std::array<VkClearValue, 2>& clearValues) {
+    if (ImGui::CollapsingHeader("Clear color")) {
+        ImGui::Spacing();
+        ImGui::ColorEdit4("Color", clearValues.at(0).color.float32);
+        ImGui::SliderFloat("Depth", &clearValues.at(1).depthStencil.depth, 0.0F, 1.0F);
+        ImGui::SliderInt("Stencil", reinterpret_cast<int*>(&clearValues.at(1).depthStencil.stencil), 0, 255);
+        ImGui::Spacing();
+    }
+}
+
+void cameraSection(ven::Camera& camera) {
+    if (ImGui::CollapsingHeader("Camera")) {
+        ImGui::Spacing();
+        ImGui::InputFloat3("Position X", &camera.getPosition().x);
+        ImGui::InputFloat3("Position Y", &camera.getPosition().y);
+        ImGui::InputFloat3("Position Z", &camera.getPosition().z);
+        ImGui::SliderFloat("FOV", &camera.getFov(), 1.0F, 180.0F);
+        ImGui::SliderFloat("Near", &camera.getNear(), 0.1F, 10.0F);
+        ImGui::SliderFloat("Far", &camera.getFar(), 10.0F, 1000.0F);
+        ImGui::SliderFloat("Move Speed", &camera.getMoveSpeed(), 0.1F, 100.0F);
+        ImGui::SliderFloat("Look Speed", &camera.getLookSpeed(), 1.0F, 1000.0F);
+        ImGui::Spacing();
+    }
+}
+
+void inputsSection(const ImGuiIO& imGui) {
+    if (ImGui::CollapsingHeader("Inputs")) {
+        ImGui::Spacing();
+        ImGui::IsMousePosValid() ? ImGui::Text("Mouse pos: (%g, %g)", imGui.MousePos.x, imGui.MousePos.y) : ImGui::Text("Mouse pos: <INVALID>");
+        ImGui::Text("Mouse delta: (%g, %g)", imGui.MouseDelta.x, imGui.MouseDelta.y);
+        ImGui::Text("Mouse down:");
+        for (int i = 0; i < static_cast<int>(std::size(imGui.MouseDown)); i++) {
+            if (ImGui::IsMouseDown(i)) {
+                ImGui::SameLine();
+                ImGui::Text("b%d (%.02f secs)", i, imGui.MouseDownDuration[i]);
+            }
+        }
+        ImGui::Text("Mouse wheel: %.1f", imGui.MouseWheel);
+        ImGui::Text("Keys down:");
+        for (auto key = static_cast<ImGuiKey>(0); key < ImGuiKey_NamedKey_END; key = static_cast<ImGuiKey>(key + 1)) {
+            if (IsLegacyNativeDupe(key) || !ImGui::IsKeyDown(key)) { continue; }
+            ImGui::SameLine();
+            ImGui::Text(key < ImGuiKey_NamedKey_BEGIN ? "\"%s\"" : "\"%s\" %d", ImGui::GetKeyName(key), key);
+        }
+        ImGui::Spacing();
+    }
 }
 
 void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties) {
@@ -85,7 +140,7 @@ void devicePropertiesSection(const VkPhysicalDeviceProperties& deviceProperties)
             ImGui::TableNextColumn(); ImGui::Text("Device Name: %s", deviceProperties.deviceName);
             ImGui::TableNextColumn(); ImGui::Text("API Version: %d.%d.%d", VK_VERSION_MAJOR(deviceProperties.apiVersion), VK_VERSION_MINOR(deviceProperties.apiVersion), VK_VERSION_PATCH(deviceProperties.apiVersion));
             ImGui::TableNextColumn(); ImGui::Text("Driver Version: %d.%d.%d", VK_VERSION_MAJOR(deviceProperties.driverVersion), VK_VERSION_MINOR(deviceProperties.driverVersion), VK_VERSION_PATCH(deviceProperties.driverVersion));
-            ImGui::TableNextColumn();  ImGui::Text("Vendor ID: %d", deviceProperties.vendorID);
+            ImGui::TableNextColumn(); ImGui::Text("Vendor ID: %d", deviceProperties.vendorID);
             ImGui::TableNextColumn(); ImGui::Text("Device ID: %d", deviceProperties.deviceID);
             ImGui::TableNextColumn(); ImGui::Text("Device Type: %d", deviceProperties.deviceType);
             ImGui::TableNextColumn(); ImGui::Text("Discrete Queue Priorities: %d", deviceProperties.limits.discreteQueuePriorities);
@@ -110,7 +165,7 @@ void themeSection() {
     static constexpr std::array themesNames = { "BlackWhite", "BlueGrey", "BlackRed" };
     if (ImGui::BeginMenu("Themes")) {
         for (int i = 0; i < themesNames.size(); ++i) {
-            if (ImGui::MenuItem(themesNames[i], nullptr, selectedTheme == i)) {
+            if (ImGui::MenuItem(themesNames.at(i), nullptr, selectedTheme == i)) {
                 selectedTheme = i;
                 switch (selectedTheme) {
                     case 0:
@@ -137,61 +192,36 @@ void themeSection() {
     }
 }
 
-void inputsSection(const ImGuiIO& io) {
-    if (ImGui::BeginMenu("Input")) {
-        ImGui::IsMousePosValid() ? ImGui::Text("Mouse pos: (%g, %g)", io.MousePos.x, io.MousePos.y) : ImGui::Text("Mouse pos: <INVALID>");
-        ImGui::Text("Mouse delta: (%g, %g)", io.MouseDelta.x, io.MouseDelta.y);
-        ImGui::Text("Mouse down:");
-        for (int i = 0; i < static_cast<int>(std::size(io.MouseDown)); i++) {
-            if (ImGui::IsMouseDown(i)) {
-                ImGui::SameLine();
-                ImGui::Text("b%d (%.02f secs)", i, io.MouseDownDuration[i]);
-            }
-        }
-        ImGui::Text("Mouse wheel: %.1f", io.MouseWheel);
-        ImGui::Text("Keys down:");
-        for (auto key = static_cast<ImGuiKey>(0); key < ImGuiKey_NamedKey_END; key = static_cast<ImGuiKey>(key + 1)) {
-            if (IsLegacyNativeDupe(key) || !ImGui::IsKeyDown(key)) { continue; }
-            ImGui::SameLine();
-            ImGui::Text((key < ImGuiKey_NamedKey_BEGIN) ? "\"%s\"" : "\"%s\" %d", ImGui::GetKeyName(key), key);
-        }
-        ImGui::EndMenu();
-    }
-}
-
 void ven::Gui::render(const VkCommandBuffer& commandBuffer) {
-    const ImGuiIO& io = ImGui::GetIO();
-    const float frameRate = io.Framerate;
+    const ImGuiIO& imGui = ImGui::GetIO();
+    const float frameRate = imGui.Framerate;
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     //ImGui::ShowMetricsWindow();
     //appInfo(frameRate);
-    constexpr float rightPanelWidth = 300.0F;
-    ImGui::BeginMainMenuBar();
-    ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x - rightPanelWidth, 0), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(rightPanelWidth, io.DisplaySize.y), ImGuiCond_Always);
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
-    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
-    if (ImGui::Begin("##Right Panel", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse)) {
-        m_frameStats.updateFrameTimes(io.DeltaTime);
+    ImGui::SetNextWindowPos(ImVec2(imGui.DisplaySize.x - RIGHT_PANEL_WIDTH, 19), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(RIGHT_PANEL_WIDTH, imGui.DisplaySize.y), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(RIGHT_PANEL_WIDTH, imGui.DisplaySize.y), ImGuiCond_Always);
+    ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.2F, 0.2F, 0.2F, 0.1F));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2F, 0.2F, 0.2F, 0.5F));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2F, 0.2F, 0.2F, 0.5F));
+    ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.2F, 0.2F, 0.2F, 0.5F));
+    if (ImGui::Begin("##Right Panel", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar)) {
+        m_frameStats.updateFrameTimes(imGui.DeltaTime);
         frameSection(frameRate, m_frameStats, m_graphMaxFps);
         m_memoryMonitor.update();
         memorySection(m_memoryMonitor);
-        ImGui::Separator();
-        ImGui::Separator();
+        rendererSection(m_clearValues);
+        cameraSection(m_camera);
+        inputsSection(imGui);
     }
     ImGui::End();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-    inputsSection(io);
-    themeSection();
+    ImGui::BeginMainMenuBar();
     devicePropertiesSection(m_deviceProperties);
+    themeSection();
     ImGui::EndMainMenuBar();
+    ImGui::PopStyleColor(4);
     ImGui::Render();
     ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
 }

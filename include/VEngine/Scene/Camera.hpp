@@ -27,20 +27,20 @@ namespace ven {
             Camera(Camera &&) = delete;
             Camera& operator=(Camera &&) = delete;
 
-            void move(const glm::vec3& direction, const float deltaTime);
-            void rotate(const float yawOffset, const float pitchOffset, const float deltaTime);
+            void move(const glm::vec3& direction, float deltaTime);
+            void rotate(float yawOffset, float pitchOffset, float deltaTime);
             [[nodiscard]] glm::mat4 getProjectionMatrix(float aspectRatio) const;
             [[nodiscard]] glm::mat4 getViewMatrix() const;
 
-            [[nodiscard]] glm::vec3 getPosition() const { return m_position; }
+            [[nodiscard]] glm::vec3& getPosition() { return m_position; }
             [[nodiscard]] glm::vec3 getFront() const { return m_front; }
             [[nodiscard]] glm::vec3 getUp() const { return m_up; }
             [[nodiscard]] glm::vec3 getRight() const { return m_right; }
-            [[nodiscard]] float getFov() const { return m_fov; }
-            [[nodiscard]] float getNear() const { return m_near; }
-            [[nodiscard]] float getFar() const { return m_far; }
-            [[nodiscard]] float getMoveSpeed() const { return m_moveSpeed; }
-            [[nodiscard]] float getLookSpeed() const { return m_lookSpeed; }
+            [[nodiscard]] float& getFov() { return m_fov; }
+            [[nodiscard]] float& getNear() { return m_near; }
+            [[nodiscard]] float& getFar() { return m_far; }
+            [[nodiscard]] float& getMoveSpeed() { return m_moveSpeed; }
+            [[nodiscard]] float& getLookSpeed() { return m_lookSpeed; }
 
         private:
 

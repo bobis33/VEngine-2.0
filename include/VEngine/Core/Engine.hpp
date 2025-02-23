@@ -33,7 +33,7 @@ namespace ven {
             Engine(): m_window(Window::DEFAULT_WIDTH, Window::DEFAULT_HEIGHT), m_device(m_window),
                       m_descriptorPool(m_device.getVkDevice()), m_descriptorSetLayout(m_device.getVkDevice()),
                       m_renderer(m_window, m_device), m_shadersModule(m_device.getVkDevice()),
-                      m_eventManager(m_camera, m_window) { initVulkan(); }
+                      m_eventManager(m_renderer.getCamera(), m_window) { initVulkan(); }
 
             ~Engine() { cleanup(); }
 
@@ -51,7 +51,7 @@ namespace ven {
             void cleanup() const;
             void createUniformBuffers();
             void createDescriptorSets();
-            void updateUniformBuffer(uint32_t currentImage) const;
+            void updateUniformBuffer(uint32_t currentImage);
             void drawFrame();
 
             VkPipelineLayout pipelineLayout = nullptr;
@@ -72,7 +72,6 @@ namespace ven {
             DescriptorSetLayout m_descriptorSetLayout;
             Renderer m_renderer;
             Shaders m_shadersModule;
-            Camera m_camera;
             EventManager m_eventManager;
             utl::Clock m_clock;
             std::vector<Model> m_models;

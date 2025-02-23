@@ -104,8 +104,8 @@ std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiS
             newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
             newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
         } else {
-            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/default.jpg"));
-            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/default.jpg"));
+            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/default.png"));
+            newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/default.png"));
         }
     }
     return newMesh;

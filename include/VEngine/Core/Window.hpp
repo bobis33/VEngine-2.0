@@ -25,7 +25,7 @@ namespace ven {
             static constexpr uint16_t DEFAULT_WIDTH = 1920;
             static constexpr uint16_t DEFAULT_HEIGHT = 1080;
 
-            explicit Window(const uint16_t width = DEFAULT_WIDTH, const uint16_t height = DEFAULT_HEIGHT) : m_window(createWindow(width, height, "VEngine")) { setWindowIcon("assets/icons/icon64x64.png"); }
+            explicit Window(const uint16_t width = DEFAULT_WIDTH, const uint16_t height = DEFAULT_HEIGHT) : m_window(createWindow(width, height, "VEngine")) { setWindowIcon("assets/images/icon64x64.png"); }
             ~Window() { glfwTerminate(); }
 
             Window(const Window&) = delete;

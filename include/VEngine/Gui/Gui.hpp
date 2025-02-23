@@ -9,6 +9,7 @@
 #include "Utils/FrameStats.hpp"
 #include "Utils/MemoryMonitor.hpp"
 #include "VEngine/Gfx/Backend/Device.hpp"
+#include "VEngine/Scene/Camera.hpp"
 
 namespace ven {
 
@@ -27,7 +28,7 @@ namespace ven {
                 BlackRed = 0x02
             };
 
-            Gui(const Device& device, GLFWwindow* window, const VkRenderPass& renderPass);
+            Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::array<VkClearValue, 2>& clearValues);
             ~Gui();
 
             Gui(const Gui&) = delete;
@@ -40,14 +41,19 @@ namespace ven {
 
         private:
 
+            static constexpr float RIGHT_PANEL_WIDTH = 300.0F;
+            static constexpr float GRAPH_MAX_FPS = 10000.0F;
+
             static void blackRedTheme();
             static void blackWhiteTheme();
             static void blueGreyTheme();
 
             const VkDevice& m_device;
-            VkDescriptorPool m_pool;
-            VkPhysicalDeviceProperties m_deviceProperties;
-            float m_graphMaxFps{10000.0F};
+            VkDescriptorPool m_pool = VK_NULL_HANDLE;
+            VkPhysicalDeviceProperties m_deviceProperties{};
+            std::array<VkClearValue, 2>& m_clearValues;
+            float m_graphMaxFps{GRAPH_MAX_FPS};
+            Camera& m_camera;
             FrameStats m_frameStats;
             MemoryMonitor m_memoryMonitor;
     }; // class Gui

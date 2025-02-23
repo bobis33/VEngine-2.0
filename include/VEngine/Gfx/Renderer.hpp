@@ -20,7 +20,7 @@ namespace ven {
 
         public:
 
-            Renderer(const Window &window, const Device &device) : m_device(device), m_window(window), m_swapChain(m_device, window.getExtent()), m_gui(m_device, m_window.getGLFWWindow(), m_swapChain.getRenderPass()) {  }
+            Renderer(const Window &window, const Device &device) : m_device(device), m_window(window), m_swapChain(m_device, window.getExtent()), m_gui(m_device, m_camera, m_window.getGLFWWindow(), m_swapChain.getRenderPass(), m_clearValues) {  }
             ~Renderer() = default;
 
             Renderer(const Renderer &) = delete;
@@ -34,14 +34,16 @@ namespace ven {
 
             [[nodiscard]] const SwapChain& getSwapChain() const { return m_swapChain; }
             [[nodiscard]] const std::vector<VkCommandBuffer>& getCommandBuffers() const { return m_commandBuffers; }
+            [[nodiscard]] Camera& getCamera() { return m_camera; }
 
         private:
 
-            static constexpr std::array m_clearValues{VkClearValue{.color = {0.0F, 0.0F, 0.0F, 1.0F}}, VkClearValue{.depthStencil = {1.0F, 0}}};
+            std::array<VkClearValue, 2> m_clearValues{VkClearValue{.color = {0.0F, 0.0F, 0.0F, 1.0F}}, VkClearValue{.depthStencil = {1.0F, 0}}};
             const Device& m_device;
             const Window& m_window;
             SwapChain m_swapChain;
             Gui m_gui;
+            Camera m_camera;
             std::vector<VkCommandBuffer> m_commandBuffers;
 
     }; // class Renderer

@@ -67,11 +67,11 @@ void ven::Engine::createUniformBuffers() {
     }
 }
 
-void ven::Engine::updateUniformBuffer(const uint32_t currentImage) const {
+void ven::Engine::updateUniformBuffer(const uint32_t currentImage) {
     UniformBufferObject ubo{};
     ubo.model = glm::mat4(1.0F);
-    ubo.view = m_camera.getViewMatrix();
-    ubo.proj = m_camera.getProjectionMatrix(static_cast<float>(m_renderer.getSwapChain().getExtent().width) / static_cast<float>(m_renderer.getSwapChain().getExtent().height));
+    ubo.view = m_renderer.getCamera().getViewMatrix();
+    ubo.proj = m_renderer.getCamera().getProjectionMatrix(static_cast<float>(m_renderer.getSwapChain().getExtent().width) / static_cast<float>(m_renderer.getSwapChain().getExtent().height));
     ubo.proj[1][1] *= -1;
     memcpy(uniformBuffersMapped[currentImage], &ubo, sizeof(ubo));
 }

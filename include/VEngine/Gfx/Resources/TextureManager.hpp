@@ -52,7 +52,7 @@ namespace ven {
             }
 
             [[nodiscard]] static const std::unordered_map<uint8_t, std::shared_ptr<Texture>>& getTextures() { return getInstance().m_textures; }
-            [[nodiscard]] static size_t getTextureSize() { return getInstance().m_textures.size(); }
+            [[nodiscard]] static uint8_t getTextureSize() { return getInstance().m_textures.size(); }
 
         private:
 

@@ -57,14 +57,14 @@ void ven::Texture::generateMipmaps(const VkImage image, const VkFormat imageForm
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
         VkImageBlit blit{};
-        blit.srcOffsets[0] = {.x=0, .y=0, .z=0};
-        blit.srcOffsets[1] = {.x=mipWidth, .y=mipHeight, .z=1};
+        blit.srcOffsets[0] = { .x = 0, .y = 0, .z = 0 };
+        blit.srcOffsets[1] = { .x = mipWidth, .y = mipHeight, .z = 1 };
         blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.srcSubresource.mipLevel = i - 1;
         blit.srcSubresource.baseArrayLayer = 0;
         blit.srcSubresource.layerCount = 1;
-        blit.dstOffsets[0] = {.x=0, .y=0, .z=0};
-        blit.dstOffsets[1] = { .x=mipWidth > 1 ? mipWidth / 2 : 1, .y=mipHeight > 1 ? mipHeight / 2 : 1, .z=1 };
+        blit.dstOffsets[0] = { .x = 0, .y = 0, .z = 0 };
+        blit.dstOffsets[1] = { .x = mipWidth > 1 ? mipWidth / 2 : 1, .y = mipHeight > 1 ? mipHeight / 2 : 1, .z = 1 };
         blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.dstSubresource.mipLevel = i;
         blit.dstSubresource.baseArrayLayer = 0;
@@ -89,18 +89,18 @@ void ven::Texture::generateMipmaps(const VkImage image, const VkFormat imageForm
 
 void ven::Texture::createTextureImage(const std::string &filePath, const SwapChain& swapChain) {
     utl::Logger::logInfo("Loading texture: " + filePath);
-    const utl::Image image(filePath, 1);
-    const auto imageSize = image.width * image.height * 4;
+    const utl::Image image(filePath, true);
+    const size_t imageSize = image.width * image.height * 4;
     m_mipLevels = static_cast<uint32_t>(std::floor(std::log2(std::max(image.width, image.height)))) + 1;
     if (image.pixels == nullptr) {
         throw utl::THROW_ERROR("failed to load texture image");
     }
     VkBuffer stagingBuffer = nullptr;
     VkDeviceMemory stagingBufferMemory = nullptr;
-    m_device.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
     void* data = nullptr;
+    m_device.createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
     vkMapMemory(m_device.getVkDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
-    memcpy(data, image.pixels, static_cast<size_t>(imageSize));
+    memcpy(data, image.pixels, imageSize);
     vkUnmapMemory(m_device.getVkDevice(), stagingBufferMemory);
     swapChain.createImage(image.width, image.height, m_mipLevels, VK_SAMPLE_COUNT_1_BIT, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
     m_device.transitionImageLayout(m_textureImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_mipLevels);
