@@ -1,6 +1,7 @@
 #include "VEngine/Gfx/Renderer.hpp"
 
-void ven::Renderer::recordCommandBuffer(const VkCommandBuffer commandBuffer, const uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, const uint32_t indiceSize, const VkDescriptorSet* descriptorSets) {
+void ven::Renderer::recordCommandBuffer(const uint32_t imageIndex, const uint32_t indiceSize, const VkDescriptorSet* descriptorSet, const VkCommandBuffer& commandBuffer, const VkBuffer& indexBuffer, const VkBuffer& vertexBuffer) {
+    const VkExtent2D extent = m_swapChain.getExtent();
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
@@ -9,22 +10,22 @@ void ven::Renderer::recordCommandBuffer(const VkCommandBuffer commandBuffer, con
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = m_swapChain.getRenderPass();
-    renderPassInfo.framebuffer = m_swapChain.getSwapChainFrameBuffers()[imageIndex];
-    renderPassInfo.renderArea.offset = {.x=0, .y=0};
-    renderPassInfo.renderArea.extent = m_swapChain.getExtent();
+    renderPassInfo.framebuffer = m_swapChain.getSwapChainFrameBuffers().at(imageIndex);
+    renderPassInfo.renderArea.offset = { .x=0, .y=0 };
+    renderPassInfo.renderArea.extent = extent;
     renderPassInfo.clearValueCount = static_cast<uint32_t>(m_clearValues.size());
     renderPassInfo.pClearValues = m_clearValues.data();
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    const VkViewport viewport{.x=0.0F, .y=0.0F, .width=static_cast<float>(m_swapChain.getExtent().width), .height=static_cast<float>(m_swapChain.getExtent().height), .minDepth=0.0F, .maxDepth=1.0F };
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shadersModule.getPipeline());
+    const VkViewport viewport{.x=0.0F, .y=0.0F, .width=static_cast<float>(extent.width), .height=static_cast<float>(extent.height), .minDepth=0.0F, .maxDepth=1.0F };
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    const VkRect2D scissor{ .offset = {.x=0, .y=0}, .extent = m_swapChain.getExtent() };
+    const VkRect2D scissor{ .offset = { .x=0, .y=0 }, .extent = extent };
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     const std::array vertexBuffers = {vertexBuffer};
     constexpr std::array<VkDeviceSize, 1> offsets = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers.data(), offsets.data());
     vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, descriptorSets, 0, nullptr);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shadersModule.getPipelineLayout(), 0, 1, descriptorSet, 0, nullptr);
     vkCmdDrawIndexed(commandBuffer, indiceSize, 1, 0, 0, 0);
     m_gui.render(commandBuffer);
     vkCmdEndRenderPass(commandBuffer);
@@ -33,14 +34,14 @@ void ven::Renderer::recordCommandBuffer(const VkCommandBuffer commandBuffer, con
     }
 }
 
-void ven::Renderer::createCommandBuffers() {
-    m_commandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
+void ven::Renderer::createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const {
+    commandBuffers.resize(SwapChain::MAX_FRAMES_IN_FLIGHT);
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool = m_device.getCommandPool();
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = static_cast<uint32_t>(m_commandBuffers.size());
-    if (vkAllocateCommandBuffers(m_device.getVkDevice(), &allocInfo, m_commandBuffers.data()) != VK_SUCCESS) {
+    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+    if (vkAllocateCommandBuffers(m_device.getVkDevice(), &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to allocate command buffers!");
     }
 }
@@ -57,3 +58,15 @@ void ven::Renderer::recreateSwapChain() {
     m_swapChain.cleanupSwapChain();
     m_swapChain.init();
 }
+
+void ven::Renderer::updateUniformBuffer(void* uniformBufferMapped, const VkDeviceSize uniformBufferSize) const {
+    UniformBufferObject ubo{};
+    ubo.model = glm::mat4(1.0F);
+    ubo.view = m_camera.getViewMatrix();
+    ubo.proj = m_camera.getProjectionMatrix(static_cast<float>(m_swapChain.getExtent().width) / static_cast<float>(m_swapChain.getExtent().height));
+    ubo.proj[1][1] *= -1;
+    ubo.ambientColor = m_ambientColor;
+    memcpy(uniformBufferMapped, &ubo, uniformBufferSize);
+}
+
+ven::Renderer::~Renderer() { }

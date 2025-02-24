@@ -8,10 +8,11 @@
 
 #include "Utils/Clock.hpp"
 #include "VEngine/Core/EventManager.hpp"
-#include "VEngine/Gfx/Renderer.hpp"
-#include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Gfx/Backend/Descriptors/Pool.hpp"
 #include "VEngine/Gfx/Backend/Descriptors/SetLayout.hpp"
+#include "VEngine/Gfx/Backend/Descriptors/Sets.hpp"
+#include "VEngine/Gfx/Renderer.hpp"
+#include "VEngine/Gfx/Resources/TextureManager.hpp"
 
 namespace ven {
 
@@ -24,18 +25,22 @@ namespace ven {
 
         public:
 
-            struct UniformBufferObject {
-                alignas(16) glm::mat4 model;
-                alignas(16) glm::mat4 view;
-                alignas(16) glm::mat4 proj;
-            };
+            Engine(): m_device(m_window), m_descriptorPool(m_device.getVkDevice()), m_descriptorSetLayout(m_device.getVkDevice()),
+                      m_descriptorSets(m_device.getVkDevice(), m_descriptorPool.getDescriptorPool(), m_descriptorSetLayout.getDescriptorSetLayout(),m_uniformBuffers),
+                      m_renderer(m_device, m_window), m_eventManager(m_renderer.getCamera(), m_window) { loadAssets(); init(); }
 
-            Engine(): m_window(Window::DEFAULT_WIDTH, Window::DEFAULT_HEIGHT), m_device(m_window),
-                      m_descriptorPool(m_device.getVkDevice()), m_descriptorSetLayout(m_device.getVkDevice()),
-                      m_renderer(m_window, m_device), m_shadersModule(m_device.getVkDevice()),
-                      m_eventManager(m_renderer.getCamera(), m_window) { initVulkan(); }
-
-            ~Engine() { cleanup(); }
+            ~Engine() {
+                const VkDevice& device = m_device.getVkDevice();
+                TextureManager::clean();
+                for (uint8_t i = 0; i < SwapChain::MAX_FRAMES_IN_FLIGHT; i++) {
+                    vkDestroyBuffer(device, m_uniformBuffers.at(i), nullptr);
+                    vkFreeMemory(device, m_uniformBuffersMemory.at(i), nullptr);
+                }
+                vkDestroyBuffer(device, m_indexBuffer, nullptr);
+                vkFreeMemory(device, m_indexBufferMemory, nullptr);
+                vkDestroyBuffer(device, m_vertexBuffer, nullptr);
+                vkFreeMemory(device, m_vertexBufferMemory, nullptr);
+            }
 
             Engine(const Engine &) = delete;
             Engine &operator=(const Engine &) = delete;
@@ -46,35 +51,29 @@ namespace ven {
 
         private:
 
-            void initVulkan();
+            void init();
             void loadAssets();
-            void cleanup() const;
-            void createUniformBuffers();
-            void createDescriptorSets();
-            void updateUniformBuffer(uint32_t currentImage);
             void drawFrame();
+            void createUniformBuffers();
 
-            VkPipelineLayout pipelineLayout = nullptr;
-            VkBuffer vertexBuffer = nullptr;
-            VkDeviceMemory vertexBufferMemory = nullptr;
-            VkBuffer indexBuffer = nullptr;
-            VkDeviceMemory indexBufferMemory = nullptr;
-            std::vector<VkBuffer> uniformBuffers;
-            std::vector<VkDeviceMemory> uniformBuffersMemory;
-            std::vector<void*> uniformBuffersMapped;
-            std::vector<VkDescriptorSet> descriptorSets;
-            uint32_t currentFrame = 0;
             uint32_t m_indicesSize = 0;
-            static constexpr VkDeviceSize m_uniformBufferSize{sizeof(UniformBufferObject)};
             Window m_window;
             Device m_device;
             DescriptorPool m_descriptorPool;
             DescriptorSetLayout m_descriptorSetLayout;
+            DescriptorSets m_descriptorSets;
             Renderer m_renderer;
-            Shaders m_shadersModule;
             EventManager m_eventManager;
             utl::Clock m_clock;
-            std::vector<Model> m_models;
+            std::vector<VkBuffer> m_uniformBuffers;
+            std::vector<VkDeviceMemory> m_uniformBuffersMemory;
+            std::vector<void*> m_uniformBuffersMapped;
+            std::vector<VkCommandBuffer> m_commandBuffers;
+            VkBuffer m_vertexBuffer = nullptr;
+            VkDeviceMemory m_vertexBufferMemory = nullptr;
+            VkBuffer m_indexBuffer = nullptr;
+            VkDeviceMemory m_indexBufferMemory = nullptr;
+            uint32_t m_currentFrame = 0;
 
     }; // class Engine
 

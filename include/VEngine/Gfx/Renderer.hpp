@@ -7,9 +7,19 @@
 #pragma once
 
 #include "VEngine/Gfx/Resources/Model.hpp"
+#include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Gui/Gui.hpp"
 
+
 namespace ven {
+
+    static constexpr uint8_t OFFSET = 16;
+    struct UniformBufferObject {
+        alignas(OFFSET) glm::mat4 model;
+        alignas(OFFSET) glm::mat4 view;
+        alignas(OFFSET) glm::mat4 proj;
+        alignas(OFFSET) glm::vec3 ambientColor;
+    };
 
     ///
     /// @class Renderer
@@ -20,31 +30,40 @@ namespace ven {
 
         public:
 
-            Renderer(const Window &window, const Device &device) : m_device(device), m_window(window), m_swapChain(m_device, window.getExtent()), m_gui(m_device, m_camera, m_window.getGLFWWindow(), m_swapChain.getRenderPass(), m_clearValues) {  }
-            ~Renderer() = default;
+            static constexpr VkDeviceSize UNIFORM_BUFFER_SIZE{sizeof(UniformBufferObject)};
+
+            explicit Renderer(const Device &device, Window& window) : m_device(device), m_window(window),
+                                                                      m_swapChain(m_device, window.getExtent()), m_shadersModule(m_device.getVkDevice()),
+                                                                      m_gui(m_device, m_camera, window.getGLFWWindow(), m_swapChain.getRenderPass(), m_clearValues, m_ambientColor) {  }
+
+            ~Renderer();
 
             Renderer(const Renderer &) = delete;
             Renderer& operator=(const Renderer &) = delete;
             Renderer(Renderer &&) = delete;
             Renderer& operator=(Renderer &&) = delete;
 
-            void createCommandBuffers();
+            void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
             void recreateSwapChain();
-            void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex, const VkPipeline& graphicsPipeline, const VkBuffer& vertexBuffer, const VkBuffer& indexBuffer, const VkPipelineLayout& pipelineLayout, uint32_t indiceSize, const VkDescriptorSet* descriptorSets);
+            void updateUniformBuffer(void* uniformBufferMapped, VkDeviceSize uniformBufferSize) const;
+            void recordCommandBuffer(uint32_t imageIndex, uint32_t indiceSize, const VkDescriptorSet* descriptorSet, const VkCommandBuffer& commandBuffer, const VkBuffer& indexBuffer, const VkBuffer& vertexBuffer);
 
             [[nodiscard]] const SwapChain& getSwapChain() const { return m_swapChain; }
-            [[nodiscard]] const std::vector<VkCommandBuffer>& getCommandBuffers() const { return m_commandBuffers; }
             [[nodiscard]] Camera& getCamera() { return m_camera; }
+            [[nodiscard]] Shaders& getShadersModule() { return m_shadersModule; }
 
         private:
 
-            std::array<VkClearValue, 2> m_clearValues{VkClearValue{.color = {0.0F, 0.0F, 0.0F, 1.0F}}, VkClearValue{.depthStencil = {1.0F, 0}}};
+            std::array<VkClearValue, 2> m_clearValues{
+                VkClearValue{ .color = {0.0F, 0.0F, 0.0F, 1.0F}},
+                VkClearValue{.depthStencil = {1.0F, 0}}};
+            glm::vec3 m_ambientColor{1.0F, 1.0F, 1.0F};
             const Device& m_device;
-            const Window& m_window;
+            Window& m_window;
             SwapChain m_swapChain;
-            Gui m_gui;
+            Shaders m_shadersModule;
             Camera m_camera;
-            std::vector<VkCommandBuffer> m_commandBuffers;
+            Gui m_gui;
 
     }; // class Renderer
 

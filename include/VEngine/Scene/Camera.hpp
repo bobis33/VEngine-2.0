@@ -33,9 +33,9 @@ namespace ven {
             [[nodiscard]] glm::mat4 getViewMatrix() const;
 
             [[nodiscard]] glm::vec3& getPosition() { return m_position; }
-            [[nodiscard]] glm::vec3 getFront() const { return m_front; }
-            [[nodiscard]] glm::vec3 getUp() const { return m_up; }
-            [[nodiscard]] glm::vec3 getRight() const { return m_right; }
+            [[nodiscard]] glm::vec3& getFront() { return m_front; }
+            [[nodiscard]] glm::vec3& getUp() { return m_up; }
+            [[nodiscard]] glm::vec3& getRight() { return m_right; }
             [[nodiscard]] float& getFov() { return m_fov; }
             [[nodiscard]] float& getNear() { return m_near; }
             [[nodiscard]] float& getFar() { return m_far; }

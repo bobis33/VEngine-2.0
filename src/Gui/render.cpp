@@ -6,6 +6,11 @@
 #include <imgui_impl_glfw.h>
 #include <imgui.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
+#include "VEngine/Gfx/Resources/Model.hpp"
+#include "VEngine/Gfx/Resources/Texture.hpp"
+#include "VEngine/Gfx/Resources/TextureManager.hpp"
 #include "VEngine/Gui/Gui.hpp"
 
 static bool IsLegacyNativeDupe(const ImGuiKey key) { return key >= 0 && key < 512; }
@@ -87,11 +92,22 @@ void memorySection(const ven::MemoryMonitor& memoryMonitor) {
 }
 
 void rendererSection(std::array<VkClearValue, 2>& clearValues) {
-    if (ImGui::CollapsingHeader("Clear color")) {
+    if (ImGui::CollapsingHeader("Renderer")) {
         ImGui::Spacing();
-        ImGui::ColorEdit4("Color", clearValues.at(0).color.float32);
+        ImGui::ColorEdit4("Clear Color", clearValues.at(0).color.float32);
         ImGui::SliderFloat("Depth", &clearValues.at(1).depthStencil.depth, 0.0F, 1.0F);
-        ImGui::SliderInt("Stencil", reinterpret_cast<int*>(&clearValues.at(1).depthStencil.stencil), 0, 255);
+        int stencilValue = static_cast<int>(clearValues.at(1).depthStencil.stencil);
+        if (ImGui::SliderInt("Stencil", &stencilValue, 0, 255)) {
+            clearValues[1].depthStencil.stencil = static_cast<uint32_t>(stencilValue);
+        }
+        ImGui::Spacing();
+    }
+}
+
+void lightSection(glm::vec3& ambientColor) {
+    if (ImGui::CollapsingHeader("Light")) {
+        ImGui::Spacing();
+        ImGui::ColorEdit3("Ambient", glm::value_ptr(ambientColor));
         ImGui::Spacing();
     }
 }
@@ -99,9 +115,10 @@ void rendererSection(std::array<VkClearValue, 2>& clearValues) {
 void cameraSection(ven::Camera& camera) {
     if (ImGui::CollapsingHeader("Camera")) {
         ImGui::Spacing();
-        ImGui::InputFloat3("Position X", &camera.getPosition().x);
-        ImGui::InputFloat3("Position Y", &camera.getPosition().y);
-        ImGui::InputFloat3("Position Z", &camera.getPosition().z);
+        ImGui::InputFloat3("Position", glm::value_ptr(camera.getPosition()));
+        ImGui::InputFloat3("Front", glm::value_ptr(camera.getFront()));
+        ImGui::InputFloat3("Up", glm::value_ptr(camera.getUp()));
+        ImGui::InputFloat3("Right", glm::value_ptr(camera.getRight()));
         ImGui::SliderFloat("FOV", &camera.getFov(), 1.0F, 180.0F);
         ImGui::SliderFloat("Near", &camera.getNear(), 0.1F, 10.0F);
         ImGui::SliderFloat("Far", &camera.getFar(), 10.0F, 1000.0F);
@@ -199,7 +216,6 @@ void ven::Gui::render(const VkCommandBuffer& commandBuffer) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
     //ImGui::ShowMetricsWindow();
-    //appInfo(frameRate);
     ImGui::SetNextWindowPos(ImVec2(imGui.DisplaySize.x - RIGHT_PANEL_WIDTH, 19), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(RIGHT_PANEL_WIDTH, imGui.DisplaySize.y), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(RIGHT_PANEL_WIDTH, imGui.DisplaySize.y), ImGuiCond_Always);
@@ -214,6 +230,7 @@ void ven::Gui::render(const VkCommandBuffer& commandBuffer) {
         memorySection(m_memoryMonitor);
         rendererSection(m_clearValues);
         cameraSection(m_camera);
+        lightSection(m_ambientColor);
         inputsSection(imGui);
     }
     ImGui::End();

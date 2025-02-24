@@ -25,21 +25,17 @@ namespace ven {
             Mesh(Mesh&&) = delete;
             Mesh& operator=(Mesh&&) = delete;
 
-            void addVertex(const Vertex& vertex) { vertices.push_back(vertex); }
-            void addIndex(const uint32_t index) { indices.push_back(index); }
-            void setTexture(const std::shared_ptr<Texture>& texture) { m_texture = texture; }
-            void setTextureIndex(const int index) { for (auto& vertex : vertices) { vertex.textureIndex = index; } }
+            void addVertex(const Vertex& vertex) { m_vertices.push_back(vertex); }
+            void addIndices(const uint32_t indices) { m_indices.push_back(indices); }
+            void setTextureIndex(const uint32_t index) { for (auto& vertex : m_vertices) { vertex.textureIndex = index; } }
 
-            [[nodiscard]] const std::shared_ptr<Texture>& getTexture() const { return m_texture; }
-            [[nodiscard]] const std::vector<Vertex>& getVertices() const { return vertices; }
-            [[nodiscard]] const std::vector<uint32_t>& getIndices() const { return indices; }
-            [[nodiscard]] int getTextureIndex() const { return vertices[0].textureIndex; }
+            [[nodiscard]] const std::vector<Vertex>& getVertices() const { return m_vertices; }
+            [[nodiscard]] const std::vector<uint32_t>& getIndices() const { return m_indices; }
 
         private:
 
-            std::shared_ptr<Texture> m_texture = nullptr;
-            std::vector<Vertex> vertices;
-            std::vector<uint32_t> indices;
+            std::vector<Vertex> m_vertices;
+            std::vector<uint32_t> m_indices;
 
     };
 

@@ -77,11 +77,11 @@ std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiS
     for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
         const aiFace face = mesh->mFaces[i];
         for (unsigned int j = 0; j < face.mNumIndices; j++) {
-            newMesh->addIndex(uniqueVertices[Vertex{.pos = {
+            newMesh->addIndices(uniqueVertices[ Vertex{ .pos = {
                 mesh->mVertices[face.mIndices[j]].x,
                 mesh->mVertices[face.mIndices[j]].y,
                 mesh->mVertices[face.mIndices[j]].z
-            }, .color = {1.0F, 1.0F, 1.0F}, .texCoord = (mesh->mTextureCoords[0] != nullptr) ? glm::vec2{
+            }, .color = {1.0F, 1.0F, 1.0F}, .texCoord = mesh->mTextureCoords[0] != nullptr ? glm::vec2{
                 mesh->mTextureCoords[0][face.mIndices[j]].x,
                 1.0F - mesh->mTextureCoords[0][face.mIndices[j]].y
             } : glm::vec2{0.0F, 0.0F}
@@ -93,18 +93,14 @@ std::unique_ptr<ven::Mesh> ven::Model::processMesh(const aiMesh* mesh, const aiS
         aiString texturePath;
         if (material->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
             material->GetTexture(aiTextureType_DIFFUSE, 0, &texturePath);
-            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
             newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
         } else if (material->GetTextureCount(aiTextureType_SPECULAR) > 0) {
             material->GetTexture(aiTextureType_SPECULAR, 0, &texturePath);
-            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
             newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
         } else if (material->GetTextureCount(aiTextureType_NORMALS) > 0) {
             material->GetTexture(aiTextureType_NORMALS, 0, &texturePath);
-            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/" + std::string(texturePath.C_Str())));
             newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/" + std::string(texturePath.C_Str())));
         } else {
-            newMesh->setTexture(TextureManager::getTexture(device, swapChain, "assets/textures/default.png"));
             newMesh->setTextureIndex(TextureManager::getTextureIndex("assets/textures/default.png"));
         }
     }

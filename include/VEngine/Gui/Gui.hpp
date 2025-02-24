@@ -28,7 +28,7 @@ namespace ven {
                 BlackRed = 0x02
             };
 
-            Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::array<VkClearValue, 2>& clearValues);
+            Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::array<VkClearValue, 2>& clearValues, glm::vec3& ambientColor);
             ~Gui();
 
             Gui(const Gui&) = delete;
@@ -52,6 +52,7 @@ namespace ven {
             VkDescriptorPool m_pool = VK_NULL_HANDLE;
             VkPhysicalDeviceProperties m_deviceProperties{};
             std::array<VkClearValue, 2>& m_clearValues;
+            glm::vec3& m_ambientColor;
             float m_graphMaxFps{GRAPH_MAX_FPS};
             Camera& m_camera;
             FrameStats m_frameStats;
