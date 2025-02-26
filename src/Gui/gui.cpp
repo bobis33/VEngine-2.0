@@ -36,7 +36,7 @@ ven::Gui::~Gui() {
     vkDestroyDescriptorPool(m_device, m_pool, nullptr);
 }
 
-ven::Gui::Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::array<VkClearValue, 2>& clearValues, glm::vec3& ambientColor): m_device(device.getVkDevice()), m_clearValues(clearValues), m_ambientColor(ambientColor), m_camera(camera) {
+ven::Gui::Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::vector<Model>& models, std::array<VkClearValue, 2>& clearValues, glm::vec3& ambientColor): m_device(device.getVkDevice()), m_models(models), m_clearValues(clearValues), m_ambientColor(ambientColor), m_camera(camera) {
     IMGUI_CHECKVERSION();
     const VkPhysicalDevice &physicalDevice = device.getPhysicalDevice();
     ImGui::CreateContext();
@@ -58,5 +58,5 @@ ven::Gui::Gui(const Device& device, Camera& camera, GLFWwindow* window, const Vk
     ImGui_ImplVulkan_Init(&init_info);
     ImGui_ImplGlfw_InitForVulkan(window, true);
     vkGetPhysicalDeviceProperties(physicalDevice, &m_deviceProperties);
-    blackRedTheme();
+    //blackRedTheme();
 }

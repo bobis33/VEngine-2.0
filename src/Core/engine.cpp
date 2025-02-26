@@ -10,15 +10,14 @@ void ven::Engine::init() {
 }
 
 void ven::Engine::loadAssets() {
-    std::vector<std::string> modelPaths = {"assets/models/sponza/sponza.obj"};
+    std::vector<std::string> modelPaths = {"assets/models/sponza/sponza.obj", "assets/models/book.obj", "assets/models/viking_room.obj"};
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
-    std::vector<Model> models;
     uint32_t vertexOffset = 0;
     TextureManager::loadTextures(m_device, m_renderer.getSwapChain(), "assets/textures");
     for (const auto& path : modelPaths) {
-        utl::Logger::logExecutionTime("Loading model: " + path, [&] { models.emplace_back(m_device, m_renderer.getSwapChain(), path); });
-        for (Model& model = models.back(); const auto& mesh : model.getMeshes()) {
+        utl::Logger::logExecutionTime("Loading model: " + path, [&] { m_models.emplace_back(m_device, m_renderer.getSwapChain(), path); });
+        for (Model& model = m_models.back(); const auto& mesh : model.getMeshes()) {
             for (const auto& vertex : mesh->getVertices()) {
                 vertices.push_back(vertex);
             }
@@ -65,7 +64,7 @@ void ven::Engine::drawFrame() {
     } if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
         throw utl::THROW_ERROR("failed to acquire swap chain image!");
     }
-    m_renderer.updateUniformBuffer(m_uniformBuffersMapped.at(m_currentFrame), Renderer::UNIFORM_BUFFER_SIZE);
+    m_renderer.updateUniformBuffer(m_uniformBuffersMapped.at(m_currentFrame), m_models);
     vkResetFences(m_device.getVkDevice(), 1, &m_renderer.getSwapChain().getInFlightFences().at(m_currentFrame));
     vkResetCommandBuffer(m_commandBuffers.at(m_currentFrame), /*VkCommandBufferResetFlagBits*/ 0);
     m_renderer.recordCommandBuffer(imageIndex, m_indicesSize, &m_descriptorSets.getDescriptorSets().at(m_currentFrame), m_commandBuffers.at(m_currentFrame), m_indexBuffer, m_vertexBuffer);

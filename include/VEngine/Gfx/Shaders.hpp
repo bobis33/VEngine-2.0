@@ -30,7 +30,7 @@ namespace ven {
             Shaders& operator=(Shaders&&) = delete;
 
             void createPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, const VkRenderPass& renderPass);
-            void createImguiPipeline(const VkRenderPass& renderPass);
+            //void createImguiPipeline(const VkRenderPass& renderPass);
 
             [[nodiscard]] const VkPipelineLayout& getPipelineLayout() const { return m_pipelineLayout; }
             //[[nodiscard]] const VkPipelineLayout& getImguiPipelineLayout() const { return m_imguiPipelineLayout; }

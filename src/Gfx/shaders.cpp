@@ -24,7 +24,7 @@ void ven::Shaders::createShaderModule(const std::vector<char>& code, VkShaderMod
     }
 }
 
-void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, VkPipelineLayout& pipelineLayout, const VkRenderPass& renderPass) {
+void ven::Shaders::createPipeline(const VkSampleCountFlagBits& msaaSample, const VkDescriptorSetLayout& descriptorSetLayout, const VkRenderPass& renderPass) {
     VkShaderModule vertShader = nullptr;
     VkShaderModule fragShader = nullptr;
     createShaderModule(utl::readFile(std::string(SHADER_PATH) + "/vertex_shader.spv"), vertShader);
@@ -102,7 +102,7 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1;
     pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-    if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to create pipeline layout!");
     }
     VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -117,11 +117,11 @@ void ven::Shaders::createGraphicsPipeline(const VkSampleCountFlagBits& msaaSampl
     pipelineInfo.pDepthStencilState = &depthStencil;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.layout = m_pipelineLayout;
     pipelineInfo.renderPass = renderPass;
     pipelineInfo.subpass = 0;
     pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_graphicsPipeline) != VK_SUCCESS) {
+    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to create graphics pipeline!");
     }
     vkDestroyShaderModule(m_device, vertShader, nullptr);

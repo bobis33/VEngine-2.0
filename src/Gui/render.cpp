@@ -112,6 +112,24 @@ void lightSection(glm::vec3& ambientColor) {
     }
 }
 
+void objectsSection(std::vector<ven::Model>& models) {
+    int count = 0;
+    if (ImGui::CollapsingHeader("Objects")) {
+        ImGui::Spacing();
+        for (auto& model : models) {
+            count++;
+            const std::string number = std::to_string(count);
+            ImGui::Separator();
+            ImGui::Text("Object %d", count);
+            auto&[position, rotation, scale] = model.getTransform();
+            ImGui::SliderFloat3(("Position##" + number).c_str(), glm::value_ptr(position), -100.0F, 100.0F);
+            ImGui::SliderFloat3(("Rotation##" +number).c_str(), glm::value_ptr(rotation), -180.0F, 180.0F);
+            ImGui::SliderFloat3(("Scale##" + number).c_str(), glm::value_ptr(scale), 0.1F, 10.0F);
+        }
+        ImGui::Spacing();
+    }
+}
+
 void cameraSection(ven::Camera& camera) {
     if (ImGui::CollapsingHeader("Camera")) {
         ImGui::Spacing();
@@ -231,6 +249,7 @@ void ven::Gui::render(const VkCommandBuffer& commandBuffer) {
         rendererSection(m_clearValues);
         cameraSection(m_camera);
         lightSection(m_ambientColor);
+        objectsSection(m_models);
         inputsSection(imGui);
     }
     ImGui::End();

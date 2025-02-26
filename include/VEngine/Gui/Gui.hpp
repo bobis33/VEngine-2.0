@@ -9,6 +9,7 @@
 #include "Utils/FrameStats.hpp"
 #include "Utils/MemoryMonitor.hpp"
 #include "VEngine/Gfx/Backend/Device.hpp"
+#include "VEngine/Gfx/Resources/Model.hpp"
 #include "VEngine/Scene/Camera.hpp"
 
 namespace ven {
@@ -28,7 +29,7 @@ namespace ven {
                 BlackRed = 0x02
             };
 
-            Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::array<VkClearValue, 2>& clearValues, glm::vec3& ambientColor);
+            Gui(const Device& device, Camera& camera, GLFWwindow* window, const VkRenderPass& renderPass, std::vector<Model>& models, std::array<VkClearValue, 2>& clearValues, glm::vec3& ambientColor);
             ~Gui();
 
             Gui(const Gui&) = delete;
@@ -55,8 +56,10 @@ namespace ven {
             glm::vec3& m_ambientColor;
             float m_graphMaxFps{GRAPH_MAX_FPS};
             Camera& m_camera;
+            std::vector<Model>& m_models;
             FrameStats m_frameStats;
             MemoryMonitor m_memoryMonitor;
+
     }; // class Gui
 
 } // namespace ven

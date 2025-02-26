@@ -1,5 +1,7 @@
 #include <vector>
 
+#include <vulkan/vulkan_core.h>
+
 #include "VEngine/Gfx/Backend/Descriptors/Sets.hpp"
 #include "VEngine/Gfx/Resources/TextureManager.hpp"
 

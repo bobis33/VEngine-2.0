@@ -9,6 +9,7 @@
 #include <assimp/scene.h>
 
 #include "VEngine/Gfx/Resources/Mesh.hpp"
+#include "VEngine/Gfx/Resources/Transform.hpp"
 
 namespace ven {
 
@@ -49,12 +50,14 @@ namespace ven {
             }
 
             [[nodiscard]] const std::vector<std::unique_ptr<Mesh>>& getMeshes() const { return m_meshes; }
+            [[nodiscard]] Transform& getTransform() { return m_transform; }
 
         private:
 
             const Device& m_device;
             const SwapChain& m_swapChain;
             std::vector<std::unique_ptr<Mesh>> m_meshes;
+            Transform m_transform;
 
             void processNode(const aiNode* node, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4 &parentTransform);
             static std::unique_ptr<Mesh> processMesh(const aiMesh* mesh, const aiScene* scene, const Device& device, const SwapChain& swapChain, const glm::mat4& transform);

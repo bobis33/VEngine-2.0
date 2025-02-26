@@ -27,7 +27,7 @@ namespace ven {
 
             Engine(): m_device(m_window), m_descriptorPool(m_device.getVkDevice()), m_descriptorSetLayout(m_device.getVkDevice()),
                       m_descriptorSets(m_device.getVkDevice(), m_descriptorPool.getDescriptorPool(), m_descriptorSetLayout.getDescriptorSetLayout(),m_uniformBuffers),
-                      m_renderer(m_device, m_window), m_eventManager(m_renderer.getCamera(), m_window) { loadAssets(); init(); }
+                      m_renderer(m_device, m_window, m_models), m_eventManager(m_renderer.getCamera(), m_window) { loadAssets(); init(); }
 
             ~Engine() {
                 const VkDevice& device = m_device.getVkDevice();
@@ -65,6 +65,7 @@ namespace ven {
             Renderer m_renderer;
             EventManager m_eventManager;
             utl::Clock m_clock;
+            std::vector<Model> m_models;
             std::vector<VkBuffer> m_uniformBuffers;
             std::vector<VkDeviceMemory> m_uniformBuffersMemory;
             std::vector<void*> m_uniformBuffersMapped;

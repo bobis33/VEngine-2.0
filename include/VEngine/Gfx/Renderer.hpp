@@ -10,7 +10,6 @@
 #include "VEngine/Gfx/Shaders.hpp"
 #include "VEngine/Gui/Gui.hpp"
 
-
 namespace ven {
 
     static constexpr uint8_t OFFSET = 16;
@@ -32,9 +31,9 @@ namespace ven {
 
             static constexpr VkDeviceSize UNIFORM_BUFFER_SIZE{sizeof(UniformBufferObject)};
 
-            explicit Renderer(const Device &device, Window& window) : m_device(device), m_window(window),
+            explicit Renderer(const Device &device, Window& window, std::vector<Model>& models) : m_device(device), m_window(window),
                                                                       m_swapChain(m_device, window.getExtent()), m_shadersModule(m_device.getVkDevice()),
-                                                                      m_gui(m_device, m_camera, window.getGLFWWindow(), m_swapChain.getRenderPass(), m_clearValues, m_ambientColor) {  }
+                                                                      m_gui(m_device, m_camera, window.getGLFWWindow(), m_swapChain.getRenderPass(), models, m_clearValues, m_ambientColor) {  }
 
             ~Renderer();
 
@@ -45,7 +44,7 @@ namespace ven {
 
             void createCommandBuffers(std::vector<VkCommandBuffer>& commandBuffers) const;
             void recreateSwapChain();
-            void updateUniformBuffer(void* uniformBufferMapped, VkDeviceSize uniformBufferSize) const;
+            void updateUniformBuffer(void* uniformBufferMapped, std::vector<Model>& models) const;
             void recordCommandBuffer(uint32_t imageIndex, uint32_t indiceSize, const VkDescriptorSet* descriptorSet, const VkCommandBuffer& commandBuffer, const VkBuffer& indexBuffer, const VkBuffer& vertexBuffer);
 
             [[nodiscard]] const SwapChain& getSwapChain() const { return m_swapChain; }

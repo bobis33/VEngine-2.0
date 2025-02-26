@@ -1,9 +1,12 @@
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "VEngine/Gfx/Renderer.hpp"
 
 void ven::Renderer::recordCommandBuffer(const uint32_t imageIndex, const uint32_t indiceSize, const VkDescriptorSet* descriptorSet, const VkCommandBuffer& commandBuffer, const VkBuffer& indexBuffer, const VkBuffer& vertexBuffer) {
     const VkExtent2D extent = m_swapChain.getExtent();
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    const VkViewport viewport{.x=0.0F, .y=0.0F, .width=static_cast<float>(extent.width), .height=static_cast<float>(extent.height), .minDepth=0.0F, .maxDepth=1.0F };
+    const VkRect2D scissor{ .offset = { .x=0, .y=0 }, .extent = extent };
+    constexpr VkCommandBufferBeginInfo beginInfo{ .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
     if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
         throw utl::THROW_ERROR("failed to begin recording command buffer!");
     }
@@ -17,9 +20,7 @@ void ven::Renderer::recordCommandBuffer(const uint32_t imageIndex, const uint32_
     renderPassInfo.pClearValues = m_clearValues.data();
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shadersModule.getPipeline());
-    const VkViewport viewport{.x=0.0F, .y=0.0F, .width=static_cast<float>(extent.width), .height=static_cast<float>(extent.height), .minDepth=0.0F, .maxDepth=1.0F };
     vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-    const VkRect2D scissor{ .offset = { .x=0, .y=0 }, .extent = extent };
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
     const std::array vertexBuffers = {vertexBuffer};
     constexpr std::array<VkDeviceSize, 1> offsets = {0};
@@ -59,14 +60,26 @@ void ven::Renderer::recreateSwapChain() {
     m_swapChain.init();
 }
 
-void ven::Renderer::updateUniformBuffer(void* uniformBufferMapped, const VkDeviceSize uniformBufferSize) const {
-    UniformBufferObject ubo{};
-    ubo.model = glm::mat4(1.0F);
-    ubo.view = m_camera.getViewMatrix();
-    ubo.proj = m_camera.getProjectionMatrix(static_cast<float>(m_swapChain.getExtent().width) / static_cast<float>(m_swapChain.getExtent().height));
-    ubo.proj[1][1] *= -1;
-    ubo.ambientColor = m_ambientColor;
-    memcpy(uniformBufferMapped, &ubo, uniformBufferSize);
+void ven::Renderer::updateUniformBuffer(void* uniformBufferMapped, std::vector<Model>& models) const {
+    for (size_t i = 0; i < models.size(); ++i) {
+        Model& model = models[i];
+        UniformBufferObject ubo{};
+        auto modelmat = glm::mat4(1.0F);
+
+        modelmat = glm::rotate(modelmat, model.getTransform().rotation.x, glm::vec3(1.0F, 0.0F, 0.0F));
+        modelmat = glm::rotate(modelmat, model.getTransform().rotation.y, glm::vec3(0.0F, 1.0F, 0.0F));
+        modelmat = glm::rotate(modelmat, model.getTransform().rotation.z, glm::vec3(0.0F, 0.0F, 1.0F));
+        modelmat = glm::translate(modelmat, model.getTransform().position);
+        modelmat = glm::scale(modelmat, model.getTransform().scale);
+
+        ubo.model = modelmat;
+        ubo.view = m_camera.getViewMatrix();
+        ubo.proj = m_camera.getProjectionMatrix(static_cast<float>(m_swapChain.getExtent().width) / static_cast<float>(m_swapChain.getExtent().height));
+        ubo.proj[1][1] *= -1;
+        ubo.ambientColor = m_ambientColor;
+        memcpy(uniformBufferMapped, &ubo, sizeof(ubo));
+    }
 }
 
-ven::Renderer::~Renderer() { }
+
+ven::Renderer::~Renderer() = default;

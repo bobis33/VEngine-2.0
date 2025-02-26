@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CMAKE_CMD=(cmake -S . -G "Unix Makefiles")
+CMAKE_CMD=(cmake -S . -G "Ninja")
 
 case $1 in
     release)
